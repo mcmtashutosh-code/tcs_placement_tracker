@@ -55,7 +55,7 @@
   /* Stats row */
   .stats{
     display:grid;
-    grid-template-columns:repeat(6,1fr);
+    grid-template-columns:repeat(auto-fit, minmax(118px, 1fr));
     gap:1px;
     background:var(--line);
     border:1px solid var(--line);
@@ -65,13 +65,14 @@
   }
   .stat{
     background:var(--paper-raised);
-    padding:16px 16px;
+    padding:14px 14px;
   }
-  .stat .num{font-family:'Fraunces', serif; font-size:26px; font-weight:600; color:var(--navy-deep);}
-  .stat .lbl{font-size:12px; color:var(--slate); margin-top:2px;}
+  .stat .num{font-family:'Fraunces', serif; font-size:24px; font-weight:600; color:var(--navy-deep);}
+  .stat .lbl{font-size:11.5px; color:var(--slate); margin-top:2px;}
   .stat.selected .num{color:var(--leaf);}
   .stat.waiting .num{color:var(--marigold);}
   .stat.fail .num{color:var(--rust);}
+  .stat.absent .num{color:#5c6b7a;}
   .stat.ongoing .num{color:#6b4fa0;}
 
   /* Charts */
@@ -161,6 +162,65 @@
   .donut-legend .row{display:flex; align-items:center; gap:7px;}
   .donut-legend i{width:10px; height:10px; border-radius:3px; flex-shrink:0;}
   .donut-legend .pct{color:var(--slate); margin-left:auto; padding-left:10px; font-size:11.5px;}
+
+  /* Funnel chart */
+  .funnel-card{
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:var(--radius-md);
+    padding:18px 20px 16px;
+    margin-bottom:24px;
+  }
+  .funnel-card h3{
+    font-size:14.5px; font-weight:600; color:var(--navy-deep);
+    font-family:'IBM Plex Sans', sans-serif; margin-bottom:4px;
+  }
+  .funnel-note{font-size:12px; color:var(--slate); margin-bottom:16px;}
+  .funnel-row{margin-bottom:13px;}
+  .funnel-row:last-child{margin-bottom:0;}
+  .funnel-row-label{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-size:13px; color:var(--ink); margin-bottom:5px;
+  }
+  .funnel-row-label b{font-family:'Fraunces', serif; font-size:16px; color:var(--navy-deep); font-weight:600;}
+  .funnel-track{height:20px; background:#eef1f4; border-radius:5px; overflow:hidden;}
+  .funnel-fill{height:100%; border-radius:5px; transition:width .3s;}
+
+  /* Batch management panel */
+  .batch-manage{
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:var(--radius-md);
+    padding:14px 16px;
+    margin-bottom:16px;
+  }
+  .batch-manage h4{
+    font-size:12.5px; font-weight:600; color:var(--navy-deep); text-transform:none;
+    margin-bottom:10px; font-family:'IBM Plex Sans', sans-serif;
+  }
+  .batch-manage-row{
+    display:flex; align-items:center; gap:10px;
+    padding:7px 0; border-bottom:1px solid var(--line); font-size:13px;
+  }
+  .batch-manage-row:last-child{border-bottom:none;}
+  .batch-manage-row .bname{font-weight:600; color:var(--navy-deep); min-width:100px;}
+  .batch-manage-row .bcount{color:var(--slate); font-size:12px; min-width:70px;}
+  .batch-manage-row select{
+    padding:5px 8px; border:1px solid var(--line); border-radius:var(--radius-sm);
+    font-family:inherit; font-size:12.5px; background:#fbfcfd;
+  }
+  .batch-manage-row .del-batch-btn{
+    margin-left:auto; border:1px solid var(--line); background:var(--paper-raised);
+    color:var(--rust); width:26px; height:26px; border-radius:var(--radius-sm);
+    cursor:pointer; font-size:13px;
+  }
+  .batch-manage-row .del-batch-btn:hover{border-color:var(--rust);}
+  .status-tag{
+    font-size:10.5px; padding:2px 8px; border-radius:999px; font-weight:500;
+  }
+  .status-tag.upcoming{background:#e7e9ec; color:#5c6b7a;}
+  .status-tag.active{background:var(--leaf-soft); color:var(--leaf);}
+  .status-tag.completed{background:#dfe7f0; color:var(--navy);}
 
   /* Batch tabs */
   .batch-row{
@@ -273,6 +333,7 @@
   .badge.fail{background:var(--rust-soft); color:var(--rust);}
   .badge.process{background:#dfe7f0; color:var(--navy);}
   .badge.ongoing{background:#ece5f5; color:#6b4fa0;}
+  .badge.absent{background:#e7e9ec; color:#5c6b7a;}
   .track-row{
     display:flex;
     gap:8px;
@@ -451,10 +512,17 @@
   <div class="stats" id="statsRow">
     <div class="stat"><div class="num" id="statTotal">0</div><div class="lbl">कुल छात्र / Total</div></div>
     <div class="stat ongoing"><div class="num" id="statOngoing">0</div><div class="lbl">फॉर्म भरा / Ongoing</div></div>
+    <div class="stat absent"><div class="num" id="statAbsent">0</div><div class="lbl">अनुपस्थित / Absent</div></div>
     <div class="stat"><div class="num" id="statProcess">0</div><div class="lbl">इंटरव्यू पेंडिंग / In process</div></div>
     <div class="stat selected"><div class="num" id="statSelected">0</div><div class="lbl">सेलेक्ट हुए / Selected</div></div>
     <div class="stat waiting"><div class="num" id="statWaiting">0</div><div class="lbl">वेटिंग में / Waiting</div></div>
-    <div class="stat fail"><div class="num" id="statFail">0</div><div class="lbl">फेल / अनुपस्थित / Fail-Absent</div></div>
+    <div class="stat fail"><div class="num" id="statFail">0</div><div class="lbl">फेल (लिखित) / Not qualified</div></div>
+  </div>
+
+  <div class="funnel-card">
+    <h3>भर्ती फ़नल / Hiring funnel</h3>
+    <div class="funnel-note">अनुपस्थित छात्र "Exam दिया" और आगे की गणना में नहीं जुड़ते, सिर्फ़ रजिस्ट्रेशन में गिनते हैं। / Absent students count only in registrations, not in exam/interview/selection stages.</div>
+    <div id="funnelHost"></div>
   </div>
 
   <div class="charts-row">
@@ -468,9 +536,15 @@
     </div>
   </div>
 
+  <div class="batch-manage admin-only" id="batchManagePanel">
+    <h4>बैच प्रबंधन (सिर्फ़ एडमिन) / Manage batches (admin only)</h4>
+    <div id="batchManageHost"></div>
+  </div>
+
   <div class="track-row" id="trackRow"></div>
 
   <div class="batch-row" id="batchRow"></div>
+
 
   <div class="toolbar">
     <div class="search-box">
@@ -630,12 +704,20 @@ const fbApp = initializeApp(firebaseConfig);
 const db = getFirestore(fbApp);
 const studentsDocRef = doc(db, 'tcsTracker', 'students');
 const metaDocRef = doc(db, 'tcsTracker', 'meta');
-const DEFAULT_BATCHES = ['2021-2024','2022-2025','2023-2026','2024-2027','2025-2028','2026-2029'];
+const DEFAULT_BATCHES = [
+  {name:'2021-2024', status:'completed'},
+  {name:'2022-2025', status:'completed'},
+  {name:'2023-2026', status:'active'},
+  {name:'2024-2027', status:'active'},
+  {name:'2025-2028', status:'upcoming'},
+  {name:'2026-2029', status:'upcoming'}
+];
 
 const ONGOING_STATUSES = ['Form Filled'];
 const SELECTED_STATUSES = ['Joining Letter Received','Offer letter received','Documents Uploaded','Batched'];
 const WAITING_STATUSES = ['No Confirmation Mail'];
-const FAIL_STATUSES = ['Absent in written Exam','No'];
+const ABSENT_STATUSES = ['Absent in written Exam'];
+const FAIL_STATUSES = ['No'];
 const PROCESS_STATUSES = ['Written Qualify'];
 
 let students = [];
@@ -674,6 +756,7 @@ function statusCategory(status){
   if (ONGOING_STATUSES.includes(status)) return 'ongoing';
   if (SELECTED_STATUSES.includes(status)) return 'selected';
   if (WAITING_STATUSES.includes(status)) return 'waiting';
+  if (ABSENT_STATUSES.includes(status)) return 'absent';
   if (FAIL_STATUSES.includes(status)) return 'fail';
   if (PROCESS_STATUSES.includes(status)) return 'process';
   return 'process';
@@ -716,7 +799,9 @@ async function loadMeta(){
 
   onSnapshot(metaDocRef, (snap) => {
     const data = snap.exists() ? snap.data() : {};
-    knownBatches = Array.isArray(data.batches) ? data.batches : DEFAULT_BATCHES;
+    let raw = Array.isArray(data.batches) ? data.batches : DEFAULT_BATCHES;
+    // पुराने डेटा में सिर्फ़ नाम (string) हो सकते हैं, उन्हें object में बदलें / normalize legacy plain-string batches
+    knownBatches = raw.map(b => typeof b === 'string' ? {name: b, status: 'active'} : b);
     currentAdminPassword = data.adminPassword || 'tcs2026';
     render();
   }, (err) => {
@@ -724,17 +809,48 @@ async function loadMeta(){
   });
 }
 
+function getBatchStatus(name){
+  const found = knownBatches.find(b => b.name === name);
+  return found ? found.status : 'active';
+}
+
+async function saveKnownBatches(updated){
+  try{
+    await setDoc(metaDocRef, { batches: updated, adminPassword: currentAdminPassword }, { merge: true });
+  } catch(e){
+    console.error('Save batches error', e);
+    showToast('बैच सेव करने में समस्या हुई / Could not save batch changes');
+  }
+}
+
 async function addNewBatch(batchName){
   const trimmed = batchName.trim();
   if (!trimmed) return;
-  const merged = Array.from(new Set([...knownBatches, trimmed])).sort();
-  try{
-    await setDoc(metaDocRef, { batches: merged, adminPassword: currentAdminPassword }, { merge: true });
-    showToast('नया बैच जुड़ गया / Batch added');
-  } catch(e){
-    console.error('Add batch error', e);
-    showToast('बैच जोड़ने में समस्या हुई / Could not add batch');
+  if (knownBatches.some(b => b.name === trimmed)){
+    showToast('यह बैच पहले से मौजूद है / This batch already exists');
+    return;
   }
+  const updated = [...knownBatches, {name: trimmed, status: 'upcoming'}].sort((a,b) => a.name.localeCompare(b.name));
+  await saveKnownBatches(updated);
+  showToast('नया बैच जुड़ गया / Batch added');
+}
+
+async function updateBatchStatus(name, status){
+  const updated = knownBatches.map(b => b.name === name ? {...b, status} : b);
+  await saveKnownBatches(updated);
+}
+
+async function deleteBatch(name){
+  const studentCount = students.filter(s => s.batch === name).length;
+  let msg = `"${name}" बैच हटाना है? / Delete batch "${name}"?`;
+  if (studentCount > 0){
+    msg += `\n\nइस बैच में ${studentCount} students हैं। सिर्फ़ बैच का label/status हटेगा, students के records नहीं मिटेंगे (उनका batch field वैसा ही रहेगा)।\n\nThis batch has ${studentCount} students. Only the batch label/status will be removed — student records stay untouched.`;
+  }
+  if (!window.confirm(msg)) return;
+  const updated = knownBatches.filter(b => b.name !== name);
+  await saveKnownBatches(updated);
+  if (activeBatch === name) activeBatch = 'all';
+  showToast('बैच हटा दिया गया / Batch removed');
 }
 
 async function changeAdminPassword(newPassword){
@@ -764,7 +880,8 @@ function showToast(msg){
 
 function getBatches(){
   const fromStudents = students.map(s => s.batch).filter(b => b && b.trim());
-  const set = new Set([...knownBatches, ...fromStudents]);
+  const fromKnown = knownBatches.map(b => b.name);
+  const set = new Set([...fromKnown, ...fromStudents]);
   return Array.from(set).sort();
 }
 
@@ -809,6 +926,7 @@ function renderTrackRow(){
 function renderStats(){
   const total = students.length;
   const ongoing = students.filter(s => statusCategory(s.status) === 'ongoing').length;
+  const absent = students.filter(s => statusCategory(s.status) === 'absent').length;
   const selected = students.filter(s => statusCategory(s.status) === 'selected').length;
   const waiting = students.filter(s => statusCategory(s.status) === 'waiting').length;
   const fail = students.filter(s => statusCategory(s.status) === 'fail').length;
@@ -817,10 +935,17 @@ function renderStats(){
   document.getElementById('totalHeadCount').textContent = total;
   document.getElementById('statTotal').textContent = total;
   document.getElementById('statOngoing').textContent = ongoing;
+  document.getElementById('statAbsent').textContent = absent;
   document.getElementById('statSelected').textContent = selected;
   document.getElementById('statWaiting').textContent = waiting;
   document.getElementById('statFail').textContent = fail;
   document.getElementById('statProcess').textContent = process;
+}
+
+function statusTagLabel(status){
+  if (status === 'upcoming') return 'आगामी / Upcoming';
+  if (status === 'completed') return 'पूरा / Completed';
+  return 'चालू / Active';
 }
 
 function renderBatchRow(){
@@ -830,7 +955,9 @@ function renderBatchRow(){
   batches.forEach(b => {
     const count = students.filter(s => (s.batch || 'अज्ञात / Unknown') === b).length;
     const selCount = students.filter(s => (s.batch || 'अज्ञात / Unknown') === b && statusCategory(s.status) === 'selected').length;
-    html += `<div class="batch-pill ${activeBatch===b?'active':''}" data-batch="${escapeAttr(b)}">${escapeHtml(b)} <span class="tally">${selCount}/${count} सेलेक्ट / selected</span></div>`;
+    const st = getBatchStatus(b);
+    const tag = st !== 'active' ? `<span class="status-tag ${st}">${statusTagLabel(st)}</span>` : '';
+    html += `<div class="batch-pill ${activeBatch===b?'active':''}" data-batch="${escapeAttr(b)}">${escapeHtml(b)} <span class="tally">${selCount}/${count} सेलेक्ट / selected</span>${tag}</div>`;
   });
   html += `<div class="batch-pill admin-only" id="addBatchPill" style="border-style:dashed; color:var(--navy-deep); font-weight:500;">+ नया बैच / Add batch</div>`;
   host.innerHTML = html;
@@ -859,6 +986,41 @@ function renderBatchRow(){
   if (dataList){
     dataList.innerHTML = getBatches().map(b => `<option value="${escapeAttr(b)}">`).join('');
   }
+}
+
+function renderBatchManagePanel(){
+  const host = document.getElementById('batchManageHost');
+  if (!host) return;
+  const batches = getBatches();
+  if (batches.length === 0){
+    host.innerHTML = '<div style="font-size:12.5px; color:var(--slate);">अभी कोई बैच नहीं / No batches yet</div>';
+    return;
+  }
+  host.innerHTML = batches.map(b => {
+    const count = students.filter(s => s.batch === b).length;
+    const st = getBatchStatus(b);
+    return `<div class="batch-manage-row">
+      <span class="bname">${escapeHtml(b)}</span>
+      <span class="bcount">${count} students</span>
+      <select data-batch="${escapeAttr(b)}" class="batch-status-select">
+        <option value="upcoming" ${st==='upcoming'?'selected':''}>आगामी / Upcoming</option>
+        <option value="active" ${st==='active'?'selected':''}>चालू / Active</option>
+        <option value="completed" ${st==='completed'?'selected':''}>पूरा / Completed</option>
+      </select>
+      <button class="del-batch-btn" data-batch="${escapeAttr(b)}" title="बैच हटाएँ / Delete batch">✕</button>
+    </div>`;
+  }).join('');
+
+  host.querySelectorAll('.batch-status-select').forEach(sel => {
+    sel.addEventListener('change', () => {
+      updateBatchStatus(sel.getAttribute('data-batch'), sel.value);
+    });
+  });
+  host.querySelectorAll('.del-batch-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      deleteBatch(btn.getAttribute('data-batch'));
+    });
+  });
 }
 
 function escapeHtml(str){
@@ -968,12 +1130,14 @@ function renderCharts(){
   const statusHost = document.getElementById('statusChart');
   if (statusHost){
     const total = students.length;
+    const slate = '#5c6b7a';
     const buckets = [
       {label:'Ongoing / जारी', count: students.filter(s => statusCategory(s.status) === 'ongoing').length, color: purple},
+      {label:'Absent / अनुपस्थित', count: students.filter(s => statusCategory(s.status) === 'absent').length, color: slate},
       {label:'In process / इंटरव्यू', count: students.filter(s => statusCategory(s.status) === 'process').length, color: navy},
       {label:'Selected / सेलेक्ट', count: students.filter(s => statusCategory(s.status) === 'selected').length, color: leaf},
       {label:'Waiting / वेटिंग', count: students.filter(s => statusCategory(s.status) === 'waiting').length, color: marigold},
-      {label:'Fail-Absent / फेल', count: students.filter(s => statusCategory(s.status) === 'fail').length, color: rust},
+      {label:'Not qualified / फेल', count: students.filter(s => statusCategory(s.status) === 'fail').length, color: rust},
     ];
 
     if (total === 0){
@@ -1008,11 +1172,49 @@ function renderCharts(){
   }
 }
 
+function renderFunnel(){
+  const host = document.getElementById('funnelHost');
+  if (!host) return;
+
+  const totalRegistration = students.length;
+  const examGiven = students.filter(s => {
+    const cat = statusCategory(s.status);
+    return cat !== 'ongoing' && cat !== 'absent';
+  }).length;
+  const interviewQualified = students.filter(s => {
+    const cat = statusCategory(s.status);
+    return cat === 'process' || cat === 'waiting' || cat === 'selected';
+  }).length;
+  const selectedFinal = students.filter(s => statusCategory(s.status) === 'selected').length;
+
+  if (totalRegistration === 0){
+    host.innerHTML = '<div class="empty-state" style="padding:20px 10px;">कोई डेटा नहीं / No data yet</div>';
+    return;
+  }
+
+  const stages = [
+    {label:'कुल रजिस्ट्रेशन / Total registration', value: totalRegistration, color:'#22405f'},
+    {label:'लिखित परीक्षा दी / Written exam given', value: examGiven, color:'#c07d2b'},
+    {label:'इंटरव्यू क्वालीफाई / Interview qualified', value: interviewQualified, color:'#6b4fa0'},
+    {label:'सेलेक्ट / ऑफर / जॉइन / Selected / offer / joined', value: selectedFinal, color:'#3f7d58'},
+  ];
+
+  host.innerHTML = stages.map(st => {
+    const pct = totalRegistration ? (st.value / totalRegistration) * 100 : 0;
+    return `<div class="funnel-row">
+      <div class="funnel-row-label"><span>${st.label}</span><b>${st.value}</b></div>
+      <div class="funnel-track"><div class="funnel-fill" style="width:${pct}%; background:${st.color};"></div></div>
+    </div>`;
+  }).join('');
+}
+
 function render(){
   renderStats();
   renderCharts();
+  renderFunnel();
   renderTrackRow();
   renderBatchRow();
+  renderBatchManagePanel();
   renderTable();
 }
 
