@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TCS प्लेसमेंट ट्रैकर / TCS Placement Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+  :root{
+    --ink:#1c2b3a;
+    --navy:#22405f;
+    --navy-deep:#152a3f;
+    --paper:#eef1f4;
+    --paper-raised:#ffffff;
+    --line:#d7dde3;
+    --marigold:#c07d2b;
+    --marigold-soft:#f3e3cb;
+    --leaf:#3f7d58;
+    --leaf-soft:#e0efe4;
+    --rust:#a8482f;
+    --rust-soft:#f5e0da;
+    --slate:#5c6b7a;
+    --radius-sm:4px;
+    --radius-md:8px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:15px;
+    line-height:1.5;
+  }
+  h1,h2,h3{font-family:'Fraunces', serif; margin:0;}
+  .wrap{max-width:1180px; margin:0 auto; padding:28px 20px 80px;}
+
+  /* Header */
+  .masthead{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:20px;
+    border-bottom:3px solid var(--navy);
+    padding-bottom:18px;
+    margin-bottom:26px;
+    flex-wrap:wrap;
+  }
+  .masthead h1{font-size:30px; font-weight:600; color:var(--navy-deep); letter-spacing:-0.01em;}
+  .masthead p{margin:6px 0 0; color:var(--slate); font-size:14px; max-width:520px;}
+  .masthead-right{text-align:right; font-size:13px; color:var(--slate);}
+  .masthead-right .count{font-family:'Fraunces', serif; font-size:34px; color:var(--marigold); line-height:1;}
+
+  /* Stats row */
+  .stats{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+    border-radius:var(--radius-md);
+    overflow:hidden;
+    margin-bottom:20px;
+  }
+  .stat{
+    background:var(--paper-raised);
+    padding:16px 16px;
+  }
+  .stat .num{font-family:'Fraunces', serif; font-size:26px; font-weight:600; color:var(--navy-deep);}
+  .stat .lbl{font-size:12px; color:var(--slate); margin-top:2px;}
+  .stat.selected .num{color:var(--leaf);}
+  .stat.waiting .num{color:var(--marigold);}
+  .stat.fail .num{color:var(--rust);}
+  .stat.ongoing .num{color:#6b4fa0;}
+
+  /* Charts */
+  .charts-row{
+    display:grid;
+    grid-template-columns:1.3fr 1fr;
+    gap:16px;
+    margin-bottom:24px;
+  }
+  .chart-card{
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:var(--radius-md);
+    padding:16px 18px 10px;
+  }
+  .chart-card h3{
+    font-size:14.5px;
+    font-weight:600;
+    color:var(--navy-deep);
+    font-family:'IBM Plex Sans', sans-serif;
+    margin-bottom:10px;
+  }
+  .chart-card .chart-wrap{position:relative; height:220px;}
+  @media(max-width:820px){
+    .charts-row{grid-template-columns:1fr;}
+  }
+
+  /* Batch tabs */
+  .batch-row{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:18px;
+  }
+  .batch-pill{
+    border:1px solid var(--line);
+    background:var(--paper-raised);
+    color:var(--ink);
+    padding:8px 14px;
+    border-radius:999px;
+    font-size:13.5px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    transition:border-color .15s, background .15s;
+  }
+  .batch-pill:hover{border-color:var(--navy);}
+  .batch-pill.active{
+    background:var(--navy-deep);
+    border-color:var(--navy-deep);
+    color:#fff;
+  }
+  .batch-pill .tally{
+    font-size:11.5px;
+    opacity:.75;
+  }
+
+  /* Toolbar */
+  .toolbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:14px;
+    margin-bottom:14px;
+    flex-wrap:wrap;
+  }
+  .search-box{
+    flex:1;
+    min-width:220px;
+    position:relative;
+  }
+  .search-box input{
+    width:100%;
+    padding:10px 14px;
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    background:var(--paper-raised);
+    font-family:inherit;
+    font-size:14px;
+    color:var(--ink);
+  }
+  .search-box input:focus{outline:2px solid var(--navy); outline-offset:1px;}
+  .btn{
+    border:none;
+    padding:10px 18px;
+    border-radius:var(--radius-sm);
+    font-family:inherit;
+    font-size:14px;
+    font-weight:500;
+    cursor:pointer;
+    transition:filter .15s;
+  }
+  .btn:hover{filter:brightness(1.08);}
+  .btn-primary{background:var(--navy-deep); color:#fff;}
+  .btn-ghost{background:transparent; color:var(--navy-deep); border:1px solid var(--line);}
+  .btn-danger{background:var(--rust-soft); color:var(--rust);}
+  .btn-small{padding:6px 12px; font-size:13px;}
+
+  /* Table */
+  .table-shell{
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:var(--radius-md);
+    overflow:hidden;
+  }
+  table{width:100%; border-collapse:collapse; font-size:13.8px;}
+  thead th{
+    text-align:left;
+    padding:12px 14px;
+    background:var(--navy-deep);
+    color:#e8edf2;
+    font-weight:500;
+    font-size:12.5px;
+    white-space:nowrap;
+  }
+  tbody td{
+    padding:11px 14px;
+    border-bottom:1px solid var(--line);
+    vertical-align:top;
+  }
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:#f5f7f9;}
+  .name-cell{font-weight:600; color:var(--navy-deep);}
+  .sub{display:block; font-size:12px; color:var(--slate); font-weight:400; margin-top:1px;}
+  .badge{
+    display:inline-block;
+    padding:3px 10px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:500;
+    white-space:nowrap;
+  }
+  .badge.selected{background:var(--leaf-soft); color:var(--leaf);}
+  .badge.waiting{background:var(--marigold-soft); color:var(--marigold);}
+  .badge.fail{background:var(--rust-soft); color:var(--rust);}
+  .badge.process{background:#dfe7f0; color:var(--navy);}
+  .badge.ongoing{background:#ece5f5; color:#6b4fa0;}
+  .track-row{
+    display:flex;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .track-pill{
+    border:1px solid var(--line);
+    background:var(--paper-raised);
+    color:var(--slate);
+    padding:6px 13px;
+    border-radius:999px;
+    font-size:13px;
+    cursor:pointer;
+  }
+  .track-pill:hover{border-color:var(--navy);}
+  .track-pill.active{background:var(--marigold); border-color:var(--marigold); color:#fff;}
+  .row-actions{display:flex; gap:6px; white-space:nowrap;}
+  .icon-btn{
+    border:1px solid var(--line);
+    background:var(--paper-raised);
+    color:var(--slate);
+    width:30px; height:30px;
+    border-radius:var(--radius-sm);
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .icon-btn:hover{border-color:var(--navy); color:var(--navy);}
+  .icon-btn.del:hover{border-color:var(--rust); color:var(--rust);}
+  .empty-state{
+    padding:60px 20px;
+    text-align:center;
+    color:var(--slate);
+  }
+  .empty-state h3{color:var(--navy-deep); font-size:19px; margin-bottom:6px;}
+
+  /* Modal */
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(21,42,63,0.55);
+    display:none;
+    align-items:flex-start;
+    justify-content:center;
+    padding:40px 16px;
+    overflow-y:auto;
+    z-index:50;
+  }
+  .overlay.show{display:flex;}
+  .modal{
+    background:var(--paper-raised);
+    border-radius:var(--radius-md);
+    width:100%;
+    max-width:620px;
+    padding:26px 28px 28px;
+  }
+  .modal h2{font-size:21px; color:var(--navy-deep); margin-bottom:4px;}
+  .modal .modal-sub{color:var(--slate); font-size:13px; margin-bottom:18px;}
+  .form-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px 16px;
+  }
+  .field{display:flex; flex-direction:column; gap:5px;}
+  .field.span2{grid-column:1 / -1;}
+  .field label{font-size:12.5px; color:var(--slate); font-weight:500;}
+  .field input, .field select{
+    padding:9px 11px;
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    font-family:inherit;
+    font-size:14px;
+    background:#fbfcfd;
+    color:var(--ink);
+  }
+  .field input:focus, .field select:focus{outline:2px solid var(--navy); outline-offset:1px;}
+  .modal-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    margin-top:22px;
+  }
+  .toast{
+    position:fixed;
+    bottom:22px;
+    left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--navy-deep);
+    color:#fff;
+    padding:11px 20px;
+    border-radius:var(--radius-sm);
+    font-size:13.5px;
+    opacity:0;
+    transition:opacity .2s, transform .2s;
+    pointer-events:none;
+    z-index:60;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  .confirm-box{
+    background:var(--paper-raised);
+    border-radius:var(--radius-md);
+    width:100%;
+    max-width:380px;
+    padding:24px 26px;
+    text-align:center;
+  }
+  .confirm-box p{color:var(--slate); font-size:14px; margin:8px 0 20px;}
+  .confirm-actions{display:flex; gap:10px; justify-content:center;}
+  .loading-note{padding:40px; text-align:center; color:var(--slate);}
+
+  /* Admin gating */
+  .admin-only{display:none !important;}
+  body.is-admin #addBtn{display:inline-block !important;}
+  body.is-admin .row-actions{display:flex !important;}
+  body.is-admin #logoutLink{display:inline !important;}
+  body.is-admin #loginLink{display:none !important;}
+  .auth-bar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    justify-content:flex-end;
+    margin-top:6px;
+  }
+  .auth-status{
+    font-size:12px;
+    padding:4px 10px;
+    border-radius:999px;
+    background:#dfe7f0;
+    color:var(--navy);
+  }
+  .auth-status.on{background:var(--leaf-soft); color:var(--leaf);}
+  .link-btn{
+    background:none;
+    border:none;
+    color:var(--navy-deep);
+    font-family:inherit;
+    font-size:12.5px;
+    text-decoration:underline;
+    cursor:pointer;
+    padding:0;
+  }
+
+  @media(max-width:720px){
+    .stats{grid-template-columns:repeat(2,1fr);}
+    .form-grid{grid-template-columns:1fr;}
+    table{font-size:12.5px;}
+    thead{display:none;}
+    tbody tr{display:block; border-bottom:8px solid var(--paper);}
+    tbody td{display:flex; justify-content:space-between; gap:10px; border-bottom:1px solid var(--line);}
+    tbody td::before{content:attr(data-label); color:var(--slate); font-size:11.5px; font-weight:500; flex-shrink:0;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="masthead">
+    <div>
+      <h1>TCS प्लेसमेंट ट्रैकर <span style="font-size:17px; color:var(--slate); font-weight:400;">/ TCS Placement Tracker</span></h1>
+      <p>बैच वाइज छात्रों का रिकॉर्ड — कौन सेलेक्ट हुआ, कौन वेटिंग में है, कौन इंटरव्यू के इंतज़ार में।<br>Batch-wise student record — who got selected, who's waiting, who's pending interview. Admin can add, edit or delete here.</p>
+    </div>
+    <div class="masthead-right">
+      <div class="count" id="totalHeadCount">0</div>
+      कुल छात्र दर्ज<br>Total students
+      <div class="auth-bar">
+        <span class="auth-status" id="authStatus">व्यू मोड / Viewing only</span>
+        <button class="link-btn" id="loginLink">एडमिन लॉगिन / Admin login</button>
+        <button class="link-btn" id="logoutLink" style="display:none;">लॉगआउट / Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats" id="statsRow">
+    <div class="stat"><div class="num" id="statTotal">0</div><div class="lbl">कुल छात्र / Total</div></div>
+    <div class="stat ongoing"><div class="num" id="statOngoing">0</div><div class="lbl">फॉर्म भरा / Ongoing</div></div>
+    <div class="stat"><div class="num" id="statProcess">0</div><div class="lbl">इंटरव्यू पेंडिंग / In process</div></div>
+    <div class="stat selected"><div class="num" id="statSelected">0</div><div class="lbl">सेलेक्ट हुए / Selected</div></div>
+    <div class="stat waiting"><div class="num" id="statWaiting">0</div><div class="lbl">वेटिंग में / Waiting</div></div>
+    <div class="stat fail"><div class="num" id="statFail">0</div><div class="lbl">फेल / अनुपस्थित / Fail-Absent</div></div>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3>बैच वाइज प्रोग्रेस / Batch-wise progress</h3>
+      <div class="chart-wrap"><canvas id="batchChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>स्थिति का वितरण / Status distribution</h3>
+      <div class="chart-wrap"><canvas id="statusChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="track-row" id="trackRow"></div>
+
+  <div class="batch-row" id="batchRow"></div>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="नाम, यूनिवर्सिटी या रेफरेंस ID से खोजें... / Search by name, university or reference ID...">
+    </div>
+    <button class="btn btn-primary admin-only" id="addBtn">+ नया छात्र जोड़ें / Add student</button>
+  </div>
+
+  <div class="table-shell">
+    <div id="tableHost">
+      <div class="loading-note">रिकॉर्ड लोड हो रहा है... / Loading records...</div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="formOverlay">
+  <div class="modal">
+    <h2 id="formTitle">नया छात्र जोड़ें / Add student</h2>
+    <div class="modal-sub" id="formSub">सभी विवरण भरें — जो जानकारी अभी नहीं है उसे खाली छोड़ सकते हैं। / Fill in what you can — leave unknown fields blank.</div>
+    <form id="studentForm">
+      <div class="form-grid">
+        <div class="field span2">
+          <label>छात्र का नाम / Student name *</label>
+          <input type="text" id="f_name" required>
+        </div>
+        <div class="field">
+          <label>Reference ID (TCS)</label>
+          <input type="text" id="f_refId">
+        </div>
+        <div class="field">
+          <label>Track / ट्रैक</label>
+          <select id="f_track">
+            <option value="IT">IT (Ignite / Smart)</option>
+            <option value="Management">Management (BPS)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>University / यूनिवर्सिटी</label>
+          <input type="text" id="f_university" list="universityList">
+          <datalist id="universityList">
+            <option value="MGKVP">
+            <option value="VBSPU">
+          </datalist>
+        </div>
+        <div class="field">
+          <label>Batch / बैच (जैसे 2023-2026)</label>
+          <input type="text" id="f_batch" placeholder="2023-2026">
+        </div>
+        <div class="field">
+          <label>Interview स्थिति / Interview status</label>
+          <input type="text" id="f_interview" placeholder="Done / Interview Date.. / Fail in Written Exam">
+        </div>
+        <div class="field">
+          <label>Roll / Enrollment No / रोल नंबर</label>
+          <input type="text" id="f_roll">
+        </div>
+        <div class="field">
+          <label>Post / पद</label>
+          <input type="text" id="f_post" list="postList">
+          <datalist id="postList">
+            <option value="Ignite">
+            <option value="Smart">
+            <option value="Digital">
+            <option value="BPS">
+          </datalist>
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="f_email">
+        </div>
+        <div class="field">
+          <label>Mobile नंबर / Mobile number</label>
+          <input type="text" id="f_mobile">
+        </div>
+        <div class="field">
+          <label>Status / स्थिति</label>
+          <select id="f_status">
+            <option value="Form Filled">Form Filled (फॉर्म भरा — जारी / Ongoing)</option>
+            <option value="Written Qualify">Written Qualify (इंटरव्यू पेंडिंग / interview pending)</option>
+            <option value="Joining Letter Received">Joining Letter Received (सेलेक्ट)</option>
+            <option value="Offer letter received">Offer letter received (सेलेक्ट)</option>
+            <option value="Documents Uploaded">Documents Uploaded (सेलेक्ट)</option>
+            <option value="Batched">Batched (सेलेक्ट)</option>
+            <option value="No Confirmation Mail">No Confirmation Mail (वेटिंग / waiting)</option>
+            <option value="Absent in written Exam">Absent in written Exam (अनुपस्थित)</option>
+            <option value="No">No (क्वालीफाई नहीं / not qualified)</option>
+          </select>
+        </div>
+        <div class="field span2">
+          <label>Remark / टिप्पणी</label>
+          <input type="text" id="f_remark">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="cancelBtn">रद्द करें / Cancel</button>
+        <button type="submit" class="btn btn-primary" id="saveBtn">सेव करें / Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <h2 style="font-size:18px;">रिकॉर्ड हटाएँ? / Delete record?</h2>
+    <p id="confirmName">यह छात्र रिकॉर्ड हमेशा के लिए हट जाएगा। / This student record will be permanently deleted.</p>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" id="confirmCancel">रद्द करें / Cancel</button>
+      <button class="btn btn-danger" id="confirmDelete">हाँ, हटाएँ / Yes, delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="overlay" id="loginOverlay">
+  <div class="confirm-box">
+    <h2 style="font-size:18px;">एडमिन लॉगिन / Admin login</h2>
+    <p>एडिट और डिलीट करने के लिए पासवर्ड डालें। बाकी सब लोग बिना लॉगिन डेटा देख सकते हैं।<br>Enter the password to edit or delete records. Everyone else can view the data without logging in.</p>
+    <input type="password" id="loginPassword" placeholder="Password" style="width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:var(--radius-sm); font-family:inherit; font-size:14px; margin-bottom:14px;">
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" id="loginCancel">रद्द करें / Cancel</button>
+      <button class="btn btn-primary" id="loginSubmit">लॉगिन / Log in</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBhDjyI5hddzrprNiZq9drJNgfE9mDYMaM",
+  authDomain: "tcs-placement-tracker.firebaseapp.com",
+  projectId: "tcs-placement-tracker",
+  storageBucket: "tcs-placement-tracker.firebasestorage.app",
+  messagingSenderId: "342404105712",
+  appId: "1:342404105712:web:88185756dc3ed448e38935",
+  measurementId: "G-092FBZ0QXR"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+const studentsDocRef = doc(db, 'tcsTracker', 'students');
+
+const ONGOING_STATUSES = ['Form Filled'];
+const SELECTED_STATUSES = ['Joining Letter Received','Offer letter received','Documents Uploaded','Batched'];
+const WAITING_STATUSES = ['No Confirmation Mail'];
+const FAIL_STATUSES = ['Absent in written Exam','No'];
+const PROCESS_STATUSES = ['Written Qualify'];
+
+let students = [];
+let activeBatch = 'all';
+let activeTrack = 'all';
+let searchTerm = '';
+let editingId = null;
+let deletingId = null;
+let isAdmin = false;
+let batchChartInstance = null;
+let statusChartInstance = null;
+const ADMIN_PASSWORD = 'tcs2026'; // इसे बदलने के लिए यहीं टेक्स्ट बदलें / change this line to update the password
+
+const seedData = [
+  {name:'Abhinandan Singh', refId:'DT20245505409', track:'IT', university:'MGKVP', batch:'2023-2026', interview:'Done', roll:'19724407036', email:'abhinandan346singh@gmail.com', mobile:'7068017030', status:'Joining Letter Received', post:'Ignite', remark:'Joining letter Receive (3 June 2026), Location Chennai'},
+  {name:'Anshika Chaudhary', refId:'DT20246223391', track:'IT', university:'MGKVP', batch:'2023-2026', interview:'Done', roll:'19724407003', email:'anshichaudhry58@gmail.com', mobile:'8957897855', status:'Documents Uploaded', post:'Ignite', remark:'Mail received for document upload'},
+  {name:'Gautam Gupta', refId:'DT202446164253', track:'IT', university:'MGKVP', batch:'2023-2026', interview:'Done', roll:'19724407101', email:'therealgautam626@gmail.com', mobile:'9118414604', status:'Offer letter received', post:'Smart', remark:'Offer letter accepted'},
+  {name:'Harsh Gupta', refId:'DT20256821893', track:'IT', university:'MGKVP', batch:'2023-2026', interview:'Done', roll:'KA2K24/197407104', email:'harshguptas.e0940@gmail.com', mobile:'8368436627', status:'Batched', post:'Smart', remark:'Batched Open'},
+  {name:'Khushi Singh', refId:'DT20267560948', track:'IT', university:'VBSPU', batch:'2023-2026', interview:'Done', roll:'PU23/188505', email:'rajputkhushisingh21@gmail.com', mobile:'8092764272', status:'Batched', post:'Smart', remark:'Batched Open'},
+  {name:'Muskan Giri', refId:'DT20267560953', track:'IT', university:'VBSPU', batch:'2023-2026', interview:'No Confirmation mail (Waiting)', roll:'PU23/188513', email:'muskangoswami502@gmail.com', mobile:'8546018200', status:'No Confirmation Mail', post:'Waiting', remark:'No confirmation mail received till now'},
+  {name:'Anchal Singh', refId:'', track:'IT', university:'VBSPU', batch:'2023-2026', interview:'Absent in written Exam', roll:'', email:'', mobile:'', status:'Absent in written Exam', post:'', remark:'Absent in written exam'},
+  {name:'Nivedita Rai', refId:'DT20246223541', track:'IT', university:'MGKVP', batch:'2023-2026', interview:'Absent in written Exam', roll:'19724407023', email:'niveditarai7905@gmail.com', mobile:'7398422068', status:'Absent in written Exam', post:'', remark:'Absent in written exam'},
+  {name:'Nisha Sharma', refId:'DT20267560949', track:'IT', university:'VBSPU', batch:'2023-2026', interview:'Fail in Written Exam', roll:'24719107928', email:'missnishasharma026@gmail.com', mobile:'9794441215', status:'No', post:'', remark:'Written not qualify'},
+  {name:'Durgesh Chaubey', refId:'', track:'IT', university:'MGKVP', batch:'2023-2026', interview:'Fail in Written Exam', roll:'', email:'', mobile:'', status:'No', post:'', remark:'Written not qualify'},
+  {name:'Naushad Ahmad', refId:'', track:'IT', university:'VBSPU', batch:'2023-2026', interview:'Fail in Written Exam', roll:'', email:'', mobile:'', status:'No', post:'', remark:'Written not qualify'},
+  {name:'Sejal Kumari', refId:'DT20267560512', track:'IT', university:'MGKVP', batch:'2023-2026', interview:'Fail in Written Exam', roll:'KA2K24/197407029', email:'sejalkumaribahuara@gmail.com', mobile:'9341397675', status:'No', post:'', remark:'Written not qualify'},
+  {name:'Pratiksha Kumari', refId:'DT20246190282', track:'IT', university:'MGKVP', batch:'2024-2026', interview:'Interview Date 09/09', roll:'', email:'', mobile:'', status:'Written Qualify', post:'Ignite', remark:'Written qualify'},
+  {name:'Piyush Gupta', refId:'DT20268246187', track:'IT', university:'MGKVP', batch:'2024-2027', interview:'Interview Date 10/10', roll:'', email:'', mobile:'', status:'Written Qualify', post:'Ignite', remark:'Written qualify'},
+  {name:'Amit Maurya', refId:'DT20257101022', track:'IT', university:'MGKVP', batch:'2024-2028', interview:'Interview Date 10/11', roll:'', email:'', mobile:'', status:'Written Qualify', post:'Ignite', remark:'Written qualify'},
+  {name:'Ajay Kumar Maurya', refId:'DT20257244714', track:'IT', university:'MGKVP', batch:'2024-2029', interview:'Interview Date 10/12', roll:'', email:'', mobile:'', status:'Written Qualify', post:'Ignite', remark:'Written qualify'}
+];
+
+function uid(){ return 's_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8); }
+
+function statusCategory(status){
+  if (ONGOING_STATUSES.includes(status)) return 'ongoing';
+  if (SELECTED_STATUSES.includes(status)) return 'selected';
+  if (WAITING_STATUSES.includes(status)) return 'waiting';
+  if (FAIL_STATUSES.includes(status)) return 'fail';
+  if (PROCESS_STATUSES.includes(status)) return 'process';
+  return 'process';
+}
+
+function statusLabel(status){
+  return status && status.trim() ? status : '—';
+}
+
+async function loadStudents(){
+  try{
+    const snap = await getDoc(studentsDocRef);
+    if (!snap.exists()){
+      const withIds = seedData.map(s => ({...s, id: uid()}));
+      await setDoc(studentsDocRef, { list: withIds });
+    }
+  } catch(e){
+    console.error('Initial load error', e);
+  }
+
+  onSnapshot(studentsDocRef, (snap) => {
+    students = (snap.exists() && snap.data().list) || [];
+    render();
+  }, (err) => {
+    console.error('Firestore snapshot error', err);
+    document.getElementById('tableHost').innerHTML =
+      '<div class="loading-note">कनेक्शन में समस्या हुई — Firestore rules चेक करें / Connection issue — check Firestore security rules.</div>';
+  });
+}
+
+async function saveStudents(){
+  try{
+    await setDoc(studentsDocRef, { list: students });
+  } catch(e){
+    console.error('Save error', e);
+    showToast('सेव करने में समस्या हुई, कृपया दोबारा कोशिश करें / Save failed, please try again');
+  }
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function getBatches(){
+  const set = new Set(students.map(s => s.batch || 'अज्ञात / Unknown'));
+  return Array.from(set).sort();
+}
+
+function filteredStudents(){
+  let list = students;
+  if (activeBatch !== 'all'){
+    list = list.filter(s => (s.batch || 'अज्ञात / Unknown') === activeBatch);
+  }
+  if (activeTrack !== 'all'){
+    list = list.filter(s => (s.track || 'IT') === activeTrack);
+  }
+  if (searchTerm.trim()){
+    const q = searchTerm.trim().toLowerCase();
+    list = list.filter(s =>
+      (s.name || '').toLowerCase().includes(q) ||
+      (s.university || '').toLowerCase().includes(q) ||
+      (s.refId || '').toLowerCase().includes(q) ||
+      (s.roll || '').toLowerCase().includes(q)
+    );
+  }
+  return list;
+}
+
+function renderTrackRow(){
+  const host = document.getElementById('trackRow');
+  const tracks = [
+    {val:'all', label:'सभी ट्रैक / All tracks'},
+    {val:'IT', label:'IT (Ignite/Smart)'},
+    {val:'Management', label:'Management (BPS)'}
+  ];
+  host.innerHTML = tracks.map(t =>
+    `<div class="track-pill ${activeTrack===t.val?'active':''}" data-track="${t.val}">${escapeHtml(t.label)}</div>`
+  ).join('');
+  host.querySelectorAll('.track-pill').forEach(el => {
+    el.addEventListener('click', () => {
+      activeTrack = el.getAttribute('data-track');
+      render();
+    });
+  });
+}
+
+function renderStats(){
+  const total = students.length;
+  const ongoing = students.filter(s => statusCategory(s.status) === 'ongoing').length;
+  const selected = students.filter(s => statusCategory(s.status) === 'selected').length;
+  const waiting = students.filter(s => statusCategory(s.status) === 'waiting').length;
+  const fail = students.filter(s => statusCategory(s.status) === 'fail').length;
+  const process = students.filter(s => statusCategory(s.status) === 'process').length;
+
+  document.getElementById('totalHeadCount').textContent = total;
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statOngoing').textContent = ongoing;
+  document.getElementById('statSelected').textContent = selected;
+  document.getElementById('statWaiting').textContent = waiting;
+  document.getElementById('statFail').textContent = fail;
+  document.getElementById('statProcess').textContent = process;
+}
+
+function renderBatchRow(){
+  const batches = getBatches();
+  const host = document.getElementById('batchRow');
+  let html = `<div class="batch-pill ${activeBatch==='all'?'active':''}" data-batch="all">सभी बैच / All batches <span class="tally">${students.length}</span></div>`;
+  batches.forEach(b => {
+    const count = students.filter(s => (s.batch || 'अज्ञात / Unknown') === b).length;
+    const selCount = students.filter(s => (s.batch || 'अज्ञात / Unknown') === b && statusCategory(s.status) === 'selected').length;
+    html += `<div class="batch-pill ${activeBatch===b?'active':''}" data-batch="${escapeAttr(b)}">${escapeHtml(b)} <span class="tally">${selCount}/${count} सेलेक्ट / selected</span></div>`;
+  });
+  host.innerHTML = html;
+  host.querySelectorAll('.batch-pill').forEach(el => {
+    el.addEventListener('click', () => {
+      activeBatch = el.getAttribute('data-batch');
+      render();
+    });
+  });
+}
+
+function escapeHtml(str){
+  return (str || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function escapeAttr(str){ return escapeHtml(str); }
+
+function maskEmail(email){
+  if (!email || !email.trim()) return '';
+  const parts = email.split('@');
+  if (parts.length !== 2) return '•••••';
+  const local = parts[0];
+  const visibleLen = Math.min(2, local.length);
+  const visible = local.slice(0, visibleLen);
+  const maskLen = Math.max(local.length - visibleLen, 3);
+  return visible + '•'.repeat(maskLen) + '@' + parts[1];
+}
+
+function maskMobile(mobile){
+  if (!mobile || !mobile.trim()) return '';
+  const digits = mobile.replace(/[^0-9]/g, '');
+  if (digits.length <= 2) return '•'.repeat(digits.length);
+  const lastTwo = digits.slice(-2);
+  return '•'.repeat(digits.length - 2) + lastTwo;
+}
+
+function renderTable(){
+  const host = document.getElementById('tableHost');
+  const list = filteredStudents().slice().sort((a,b) => (a.name||'').localeCompare(b.name||''));
+
+  if (list.length === 0){
+    host.innerHTML = `<div class="empty-state">
+      <h3>कोई रिकॉर्ड नहीं मिला / No records found</h3>
+      <p>इस बैच या खोज के लिए कोई छात्र दर्ज नहीं है। ऊपर से नया छात्र जोड़ें।<br>No students match this batch or search. Add one from above.</p>
+    </div>`;
+    return;
+  }
+
+  let rows = list.map(s => {
+    const cat = statusCategory(s.status);
+    const mobileDisplay = isAdmin ? (s.mobile || '—') : (maskMobile(s.mobile) || '—');
+    const emailDisplay = isAdmin ? (s.email || '') : maskEmail(s.email);
+    return `<tr data-id="${s.id}">
+      <td data-label="नाम / Name"><span class="name-cell">${escapeHtml(s.name)}</span><span class="sub">${escapeHtml(s.refId || '')}</span></td>
+      <td data-label="University">${escapeHtml(s.university || '—')}<span class="sub">${escapeHtml(s.batch || '')}</span></td>
+      <td data-label="Interview">${escapeHtml(s.interview || '—')}</td>
+      <td data-label="Post">${escapeHtml(s.post || '—')}<span class="sub">${escapeHtml(s.track || 'IT')}</span></td>
+      <td data-label="संपर्क / Contact">${escapeHtml(mobileDisplay)}<span class="sub">${escapeHtml(emailDisplay)}</span></td>
+      <td data-label="Status"><span class="badge ${cat}">${escapeHtml(statusLabel(s.status))}</span></td>
+      <td data-label="Remark">${escapeHtml(s.remark || '—')}</td>
+      <td data-label="">
+        <div class="row-actions admin-only">
+          <button class="icon-btn edit-btn" title="बदलें / Edit" data-id="${s.id}">✎</button>
+          <button class="icon-btn del del-btn" title="हटाएँ / Delete" data-id="${s.id}">✕</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  host.innerHTML = `<table>
+    <thead><tr>
+      <th>नाम / Name</th><th>University</th><th>Interview</th><th>Post</th><th>संपर्क / Contact</th><th>Status</th><th>Remark</th><th></th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+
+  host.querySelectorAll('.edit-btn').forEach(b => b.addEventListener('click', () => openEdit(b.getAttribute('data-id'))));
+  host.querySelectorAll('.del-btn').forEach(b => b.addEventListener('click', () => openConfirm(b.getAttribute('data-id'))));
+}
+
+function renderCharts(){
+  if (typeof Chart === 'undefined') return;
+
+  const navy = '#22405f';
+  const leaf = '#3f7d58';
+  const marigold = '#c07d2b';
+  const rust = '#a8482f';
+  const purple = '#6b4fa0';
+
+  // Batch-wise: total vs selected
+  const batches = getBatches();
+  const totals = batches.map(b => students.filter(s => (s.batch || 'अज्ञात / Unknown') === b).length);
+  const selectedCounts = batches.map(b => students.filter(s => (s.batch || 'अज्ञात / Unknown') === b && statusCategory(s.status) === 'selected').length);
+
+  const batchCtx = document.getElementById('batchChart');
+  if (batchCtx){
+    if (batchChartInstance) batchChartInstance.destroy();
+    batchChartInstance = new Chart(batchCtx, {
+      type: 'bar',
+      data: {
+        labels: batches,
+        datasets: [
+          { label: 'कुल / Total', data: totals, backgroundColor: '#c7d2dc', borderRadius: 3 },
+          { label: 'सेलेक्ट / Selected', data: selectedCounts, backgroundColor: leaf, borderRadius: 3 }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+        scales: {
+          y: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 } } },
+          x: { ticks: { font: { size: 10.5 } } }
+        }
+      }
+    });
+  }
+
+  // Status distribution donut
+  const dist = {
+    'Ongoing': students.filter(s => statusCategory(s.status) === 'ongoing').length,
+    'In process': students.filter(s => statusCategory(s.status) === 'process').length,
+    'Selected': students.filter(s => statusCategory(s.status) === 'selected').length,
+    'Waiting': students.filter(s => statusCategory(s.status) === 'waiting').length,
+    'Fail/Absent': students.filter(s => statusCategory(s.status) === 'fail').length,
+  };
+  const statusCtx = document.getElementById('statusChart');
+  if (statusCtx){
+    if (statusChartInstance) statusChartInstance.destroy();
+    statusChartInstance = new Chart(statusCtx, {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(dist),
+        datasets: [{
+          data: Object.values(dist),
+          backgroundColor: [purple, navy, leaf, marigold, rust],
+          borderWidth: 2,
+          borderColor: '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '62%',
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 }, padding: 10 } } }
+      }
+    });
+  }
+}
+
+function render(){
+  renderStats();
+  renderCharts();
+  renderTrackRow();
+  renderBatchRow();
+  renderTable();
+}
+
+function openAdd(){
+  if (!isAdmin) return;
+  editingId = null;
+  document.getElementById('formTitle').textContent = 'नया छात्र जोड़ें / Add student';
+  document.getElementById('formSub').textContent = 'सभी विवरण भरें — जो जानकारी अभी नहीं है उसे खाली छोड़ सकते हैं। / Fill in what you can — leave unknown fields blank.';
+  document.getElementById('studentForm').reset();
+  document.getElementById('f_track').value = 'IT';
+  document.getElementById('formOverlay').classList.add('show');
+  document.getElementById('f_name').focus();
+}
+
+function openEdit(id){
+  if (!isAdmin) return;
+  const s = students.find(x => x.id === id);
+  if (!s) return;
+  editingId = id;
+  document.getElementById('formTitle').textContent = 'छात्र का रिकॉर्ड बदलें / Edit student';
+  document.getElementById('formSub').textContent = 'Update details for ' + escapeHtml(s.name) + ' / ' + escapeHtml(s.name) + ' का विवरण अपडेट करें।';
+  document.getElementById('f_name').value = s.name || '';
+  document.getElementById('f_refId').value = s.refId || '';
+  document.getElementById('f_track').value = s.track || 'IT';
+  document.getElementById('f_university').value = s.university || '';
+  document.getElementById('f_batch').value = s.batch || '';
+  document.getElementById('f_interview').value = s.interview || '';
+  document.getElementById('f_roll').value = s.roll || '';
+  document.getElementById('f_post').value = s.post || '';
+  document.getElementById('f_email').value = s.email || '';
+  document.getElementById('f_mobile').value = s.mobile || '';
+  document.getElementById('f_status').value = s.status || 'Form Filled';
+  document.getElementById('f_remark').value = s.remark || '';
+  document.getElementById('formOverlay').classList.add('show');
+}
+
+function closeForm(){
+  document.getElementById('formOverlay').classList.remove('show');
+  editingId = null;
+}
+
+async function submitForm(e){
+  e.preventDefault();
+  const name = document.getElementById('f_name').value.trim();
+  if (!name){ return; }
+  const data = {
+    name,
+    refId: document.getElementById('f_refId').value.trim(),
+    track: document.getElementById('f_track').value,
+    university: document.getElementById('f_university').value.trim(),
+    batch: document.getElementById('f_batch').value.trim(),
+    interview: document.getElementById('f_interview').value.trim(),
+    roll: document.getElementById('f_roll').value.trim(),
+    post: document.getElementById('f_post').value.trim(),
+    email: document.getElementById('f_email').value.trim(),
+    mobile: document.getElementById('f_mobile').value.trim(),
+    status: document.getElementById('f_status').value,
+    remark: document.getElementById('f_remark').value.trim(),
+  };
+
+  const saveBtn = document.getElementById('saveBtn');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'सेव हो रहा है... / Saving...';
+
+  if (editingId){
+    const idx = students.findIndex(x => x.id === editingId);
+    if (idx > -1) students[idx] = {...students[idx], ...data};
+  } else {
+    students.push({...data, id: uid()});
+  }
+  await saveStudents();
+  saveBtn.disabled = false;
+  saveBtn.textContent = 'सेव करें / Save';
+  closeForm();
+  render();
+  showToast(editingId ? 'रिकॉर्ड अपडेट हो गया / Record updated' : 'नया छात्र जोड़ा गया / Student added');
+}
+
+function openConfirm(id){
+  if (!isAdmin) return;
+  const s = students.find(x => x.id === id);
+  if (!s) return;
+  deletingId = id;
+  document.getElementById('confirmName').textContent = `"${s.name}" का रिकॉर्ड हमेशा के लिए हट जाएगा। / This will permanently delete "${s.name}"'s record.`;
+  document.getElementById('confirmOverlay').classList.add('show');
+}
+
+function closeConfirm(){
+  document.getElementById('confirmOverlay').classList.remove('show');
+  deletingId = null;
+}
+
+async function doDelete(){
+  if (!deletingId) return;
+  students = students.filter(x => x.id !== deletingId);
+  await saveStudents();
+  closeConfirm();
+  render();
+  showToast('रिकॉर्ड हटा दिया गया / Record deleted');
+}
+
+document.getElementById('addBtn').addEventListener('click', openAdd);
+document.getElementById('cancelBtn').addEventListener('click', closeForm);
+document.getElementById('studentForm').addEventListener('submit', submitForm);
+document.getElementById('formOverlay').addEventListener('click', (e) => { if (e.target.id === 'formOverlay') closeForm(); });
+document.getElementById('confirmCancel').addEventListener('click', closeConfirm);
+document.getElementById('confirmDelete').addEventListener('click', doDelete);
+document.getElementById('confirmOverlay').addEventListener('click', (e) => { if (e.target.id === 'confirmOverlay') closeConfirm(); });
+document.getElementById('searchInput').addEventListener('input', (e) => { searchTerm = e.target.value; renderTable(); });
+
+function updateAuthUI(){
+  document.body.classList.toggle('is-admin', isAdmin);
+  const statusEl = document.getElementById('authStatus');
+  if (isAdmin){
+    statusEl.textContent = 'एडमिन मोड चालू / Admin mode on';
+    statusEl.classList.add('on');
+  } else {
+    statusEl.textContent = 'व्यू मोड / Viewing only';
+    statusEl.classList.remove('on');
+  }
+}
+
+function openLogin(){
+  document.getElementById('loginPassword').value = '';
+  document.getElementById('loginOverlay').classList.add('show');
+  setTimeout(() => document.getElementById('loginPassword').focus(), 50);
+}
+function closeLogin(){
+  document.getElementById('loginOverlay').classList.remove('show');
+}
+function attemptLogin(){
+  const val = document.getElementById('loginPassword').value;
+  if (val === ADMIN_PASSWORD){
+    isAdmin = true;
+    updateAuthUI();
+    closeLogin();
+    render();
+    showToast('एडमिन मोड चालू / Admin mode on');
+  } else {
+    showToast('गलत पासवर्ड / Wrong password');
+  }
+}
+function doLogout(){
+  isAdmin = false;
+  updateAuthUI();
+  render();
+  showToast('लॉगआउट हो गया / Logged out');
+}
+
+document.getElementById('loginLink').addEventListener('click', openLogin);
+document.getElementById('loginCancel').addEventListener('click', closeLogin);
+document.getElementById('loginSubmit').addEventListener('click', attemptLogin);
+document.getElementById('logoutLink').addEventListener('click', doLogout);
+document.getElementById('loginOverlay').addEventListener('click', (e) => { if (e.target.id === 'loginOverlay') closeLogin(); });
+document.getElementById('loginPassword').addEventListener('keydown', (e) => { if (e.key === 'Enter'){ e.preventDefault(); attemptLogin(); } });
+
+updateAuthUI();
+loadStudents();
+</script>
+</body>
+</html>
