@@ -389,6 +389,8 @@
   body.is-admin .row-actions{display:flex !important;}
   body.is-admin #logoutLink{display:inline !important;}
   body.is-admin #loginLink{display:none !important;}
+  body.is-admin #addBatchPill{display:flex !important;}
+  body.is-admin #changePasswordLink{display:inline !important;}
   .auth-bar{
     display:flex;
     align-items:center;
@@ -440,6 +442,7 @@
       <div class="auth-bar">
         <span class="auth-status" id="authStatus">व्यू मोड / Viewing only</span>
         <button class="link-btn" id="loginLink">एडमिन लॉगिन / Admin login</button>
+        <button class="link-btn" id="changePasswordLink" style="display:none;">पासवर्ड बदलें / Change password</button>
         <button class="link-btn" id="logoutLink" style="display:none;">लॉगआउट / Logout</button>
       </div>
     </div>
@@ -514,7 +517,8 @@
         </div>
         <div class="field">
           <label>Batch / बैच (जैसे 2023-2026)</label>
-          <input type="text" id="f_batch" placeholder="2023-2026">
+          <input type="text" id="f_batch" placeholder="2023-2026" list="batchDataList">
+          <datalist id="batchDataList"></datalist>
         </div>
         <div class="field">
           <label>Interview स्थिति / Interview status</label>
@@ -594,6 +598,20 @@
   </div>
 </div>
 
+<div class="overlay" id="pwdOverlay">
+  <div class="confirm-box">
+    <h2 style="font-size:18px;">पासवर्ड बदलें / Change password</h2>
+    <p>नया पासवर्ड सभी एडमिन के लिए तुरंत लागू हो जाएगा।<br>The new password applies for all admins immediately.</p>
+    <input type="password" id="pwdCurrent" placeholder="मौजूदा पासवर्ड / Current password" style="width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:var(--radius-sm); font-family:inherit; font-size:14px; margin-bottom:10px;">
+    <input type="password" id="pwdNew" placeholder="नया पासवर्ड / New password" style="width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:var(--radius-sm); font-family:inherit; font-size:14px; margin-bottom:10px;">
+    <input type="password" id="pwdConfirm" placeholder="नया पासवर्ड दोबारा / Confirm new password" style="width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:var(--radius-sm); font-family:inherit; font-size:14px; margin-bottom:14px;">
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" id="pwdCancel">रद्द करें / Cancel</button>
+      <button class="btn btn-primary" id="pwdSubmit">बदलें / Update</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
@@ -611,6 +629,8 @@ const firebaseConfig = {
 const fbApp = initializeApp(firebaseConfig);
 const db = getFirestore(fbApp);
 const studentsDocRef = doc(db, 'tcsTracker', 'students');
+const metaDocRef = doc(db, 'tcsTracker', 'meta');
+const DEFAULT_BATCHES = ['2021-2024','2022-2025','2023-2026','2024-2027','2025-2028','2026-2029'];
 
 const ONGOING_STATUSES = ['Form Filled'];
 const SELECTED_STATUSES = ['Joining Letter Received','Offer letter received','Documents Uploaded','Batched'];
@@ -625,7 +645,9 @@ let searchTerm = '';
 let editingId = null;
 let deletingId = null;
 let isAdmin = false;
-const ADMIN_PASSWORD = 'tcs2026'; // इसे बदलने के लिए यहीं टेक्स्ट बदलें / change this line to update the password
+let knownBatches = [];
+let currentAdminPassword = 'tcs2026';
+// एडमिन पासवर्ड अब Firestore में सेव है, ऐप से ही बदला जा सकता है / Admin password now lives in Firestore, changeable from within the app
 
 const seedData = [
   {name:'Abhinandan Singh', refId:'DT20245505409', track:'IT', university:'MGKVP', batch:'2023-2026', interview:'Done', roll:'19724407036', email:'abhinandan346singh@gmail.com', mobile:'7068017030', status:'Joining Letter Received', post:'Ignite', remark:'Joining letter Receive (3 June 2026), Location Chennai'},
@@ -682,6 +704,48 @@ async function loadStudents(){
   });
 }
 
+async function loadMeta(){
+  try{
+    const snap = await getDoc(metaDocRef);
+    if (!snap.exists()){
+      await setDoc(metaDocRef, { batches: DEFAULT_BATCHES, adminPassword: 'tcs2026' });
+    }
+  } catch(e){
+    console.error('Initial meta load error', e);
+  }
+
+  onSnapshot(metaDocRef, (snap) => {
+    const data = snap.exists() ? snap.data() : {};
+    knownBatches = Array.isArray(data.batches) ? data.batches : DEFAULT_BATCHES;
+    currentAdminPassword = data.adminPassword || 'tcs2026';
+    render();
+  }, (err) => {
+    console.error('Meta snapshot error', err);
+  });
+}
+
+async function addNewBatch(batchName){
+  const trimmed = batchName.trim();
+  if (!trimmed) return;
+  const merged = Array.from(new Set([...knownBatches, trimmed])).sort();
+  try{
+    await setDoc(metaDocRef, { batches: merged, adminPassword: currentAdminPassword }, { merge: true });
+    showToast('नया बैच जुड़ गया / Batch added');
+  } catch(e){
+    console.error('Add batch error', e);
+    showToast('बैच जोड़ने में समस्या हुई / Could not add batch');
+  }
+}
+
+async function changeAdminPassword(newPassword){
+  try{
+    await setDoc(metaDocRef, { batches: knownBatches, adminPassword: newPassword }, { merge: true });
+  } catch(e){
+    console.error('Password change error', e);
+    throw e;
+  }
+}
+
 async function saveStudents(){
   try{
     await setDoc(studentsDocRef, { list: students });
@@ -699,7 +763,8 @@ function showToast(msg){
 }
 
 function getBatches(){
-  const set = new Set(students.map(s => s.batch || 'अज्ञात / Unknown'));
+  const fromStudents = students.map(s => s.batch).filter(b => b && b.trim());
+  const set = new Set([...knownBatches, ...fromStudents]);
   return Array.from(set).sort();
 }
 
@@ -767,13 +832,33 @@ function renderBatchRow(){
     const selCount = students.filter(s => (s.batch || 'अज्ञात / Unknown') === b && statusCategory(s.status) === 'selected').length;
     html += `<div class="batch-pill ${activeBatch===b?'active':''}" data-batch="${escapeAttr(b)}">${escapeHtml(b)} <span class="tally">${selCount}/${count} सेलेक्ट / selected</span></div>`;
   });
+  html += `<div class="batch-pill admin-only" id="addBatchPill" style="border-style:dashed; color:var(--navy-deep); font-weight:500;">+ नया बैच / Add batch</div>`;
   host.innerHTML = html;
-  host.querySelectorAll('.batch-pill').forEach(el => {
+  host.querySelectorAll('.batch-pill[data-batch]').forEach(el => {
     el.addEventListener('click', () => {
       activeBatch = el.getAttribute('data-batch');
       render();
     });
   });
+  const addBatchPill = document.getElementById('addBatchPill');
+  if (addBatchPill){
+    addBatchPill.addEventListener('click', async () => {
+      if (!isAdmin) return;
+      const name = window.prompt('नया बैच नाम डालें (जैसे 2025-2028) / Enter new batch (e.g. 2025-2028):', '');
+      if (name === null) return;
+      const trimmed = name.trim();
+      if (!/^\d{4}-\d{4}$/.test(trimmed)){
+        showToast('सही फ़ॉर्मेट डालें: YYYY-YYYY / Please use format YYYY-YYYY');
+        return;
+      }
+      await addNewBatch(trimmed);
+    });
+  }
+
+  const dataList = document.getElementById('batchDataList');
+  if (dataList){
+    dataList.innerHTML = getBatches().map(b => `<option value="${escapeAttr(b)}">`).join('');
+  }
 }
 
 function escapeHtml(str){
@@ -1060,7 +1145,7 @@ function closeLogin(){
 }
 function attemptLogin(){
   const val = document.getElementById('loginPassword').value;
-  if (val === ADMIN_PASSWORD){
+  if (val === currentAdminPassword){
     isAdmin = true;
     updateAuthUI();
     closeLogin();
@@ -1077,6 +1162,46 @@ function doLogout(){
   showToast('लॉगआउट हो गया / Logged out');
 }
 
+function openPwd(){
+  if (!isAdmin) return;
+  document.getElementById('pwdCurrent').value = '';
+  document.getElementById('pwdNew').value = '';
+  document.getElementById('pwdConfirm').value = '';
+  document.getElementById('pwdOverlay').classList.add('show');
+}
+function closePwd(){
+  document.getElementById('pwdOverlay').classList.remove('show');
+}
+async function submitPwdChange(){
+  const cur = document.getElementById('pwdCurrent').value;
+  const next = document.getElementById('pwdNew').value;
+  const confirm = document.getElementById('pwdConfirm').value;
+  if (cur !== currentAdminPassword){
+    showToast('मौजूदा पासवर्ड गलत है / Current password is wrong');
+    return;
+  }
+  if (!next || next.length < 4){
+    showToast('नया पासवर्ड कम से कम 4 अक्षर का हो / New password must be 4+ characters');
+    return;
+  }
+  if (next !== confirm){
+    showToast('नया पासवर्ड मैच नहीं हुआ / New passwords do not match');
+    return;
+  }
+  const submitBtn = document.getElementById('pwdSubmit');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'अपडेट हो रहा है... / Updating...';
+  try{
+    await changeAdminPassword(next);
+    closePwd();
+    showToast('पासवर्ड बदल गया / Password updated');
+  } catch(e){
+    showToast('पासवर्ड बदलने में समस्या हुई / Could not update password');
+  }
+  submitBtn.disabled = false;
+  submitBtn.textContent = 'बदलें / Update';
+}
+
 document.getElementById('loginLink').addEventListener('click', openLogin);
 document.getElementById('loginCancel').addEventListener('click', closeLogin);
 document.getElementById('loginSubmit').addEventListener('click', attemptLogin);
@@ -1084,8 +1209,14 @@ document.getElementById('logoutLink').addEventListener('click', doLogout);
 document.getElementById('loginOverlay').addEventListener('click', (e) => { if (e.target.id === 'loginOverlay') closeLogin(); });
 document.getElementById('loginPassword').addEventListener('keydown', (e) => { if (e.key === 'Enter'){ e.preventDefault(); attemptLogin(); } });
 
+document.getElementById('changePasswordLink').addEventListener('click', openPwd);
+document.getElementById('pwdCancel').addEventListener('click', closePwd);
+document.getElementById('pwdSubmit').addEventListener('click', submitPwdChange);
+document.getElementById('pwdOverlay').addEventListener('click', (e) => { if (e.target.id === 'pwdOverlay') closePwd(); });
+
 updateAuthUI();
 loadStudents();
+loadMeta();
 </script>
 </body>
 </html>
