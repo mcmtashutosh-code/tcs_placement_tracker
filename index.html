@@ -6,7 +6,6 @@
 <title>TCS प्लेसमेंट ट्रैकर / TCS Placement Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 <style>
   :root{
     --ink:#1c2b3a;
@@ -95,10 +94,73 @@
     font-family:'IBM Plex Sans', sans-serif;
     margin-bottom:10px;
   }
-  .chart-card .chart-wrap{position:relative; height:220px;}
+  .chart-card .chart-wrap{position:relative; min-height:220px;}
   @media(max-width:820px){
     .charts-row{grid-template-columns:1fr;}
   }
+
+  /* Custom bar chart (no external lib) */
+  .bar-chart{display:flex; flex-direction:column; gap:11px; padding:4px 0 8px;}
+  .bar-row-label{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-size:12.5px; color:var(--ink); margin-bottom:4px;
+  }
+  .bar-row-label .cnt{color:var(--slate); font-size:11.5px;}
+  .bar-track{
+    position:relative;
+    height:14px;
+    background:#eef1f4;
+    border-radius:4px;
+    overflow:hidden;
+  }
+  .bar-fill-total{
+    position:absolute; top:0; left:0; height:100%;
+    background:#d3dbe3;
+    border-radius:4px;
+  }
+  .bar-fill-selected{
+    position:absolute; top:0; left:0; height:100%;
+    background:var(--leaf);
+    border-radius:4px;
+  }
+  .bar-legend{
+    display:flex; gap:16px; font-size:11.5px; color:var(--slate); margin-top:10px;
+  }
+  .bar-legend span{display:inline-flex; align-items:center; gap:5px;}
+  .bar-legend i{width:9px; height:9px; border-radius:2px; display:inline-block;}
+
+  /* Custom donut chart (no external lib) */
+  .donut-chart-wrap{display:flex; align-items:center; gap:20px; padding:8px 0;}
+  .donut-circle{
+    width:150px; height:150px;
+    border-radius:50%;
+    flex-shrink:0;
+    position:relative;
+  }
+  .donut-circle::after{
+    content:'';
+    position:absolute;
+    inset:22px;
+    background:var(--paper-raised);
+    border-radius:50%;
+    display:flex;
+  }
+  .donut-center-label{
+    position:absolute;
+    inset:22px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    font-family:'Fraunces', serif;
+    color:var(--navy-deep);
+  }
+  .donut-center-label .n{font-size:22px; font-weight:600; line-height:1;}
+  .donut-center-label .t{font-size:10px; color:var(--slate); margin-top:2px; font-family:'IBM Plex Sans', sans-serif;}
+  .donut-legend{display:flex; flex-direction:column; gap:7px; font-size:12px; color:var(--ink);}
+  .donut-legend .row{display:flex; align-items:center; gap:7px;}
+  .donut-legend i{width:10px; height:10px; border-radius:3px; flex-shrink:0;}
+  .donut-legend .pct{color:var(--slate); margin-left:auto; padding-left:10px; font-size:11.5px;}
 
   /* Batch tabs */
   .batch-row{
@@ -395,11 +457,11 @@
   <div class="charts-row">
     <div class="chart-card">
       <h3>बैच वाइज प्रोग्रेस / Batch-wise progress</h3>
-      <div class="chart-wrap"><canvas id="batchChart"></canvas></div>
+      <div class="chart-wrap" id="batchChart"></div>
     </div>
     <div class="chart-card">
       <h3>स्थिति का वितरण / Status distribution</h3>
-      <div class="chart-wrap"><canvas id="statusChart"></canvas></div>
+      <div class="chart-wrap" id="statusChart"></div>
     </div>
   </div>
 
@@ -563,8 +625,6 @@ let searchTerm = '';
 let editingId = null;
 let deletingId = null;
 let isAdmin = false;
-let batchChartInstance = null;
-let statusChartInstance = null;
 const ADMIN_PASSWORD = 'tcs2026'; // इसे बदलने के लिए यहीं टेक्स्ट बदलें / change this line to update the password
 
 const seedData = [
@@ -785,72 +845,81 @@ function renderTable(){
 }
 
 function renderCharts(){
-  if (typeof Chart === 'undefined') return;
-
   const navy = '#22405f';
   const leaf = '#3f7d58';
   const marigold = '#c07d2b';
   const rust = '#a8482f';
   const purple = '#6b4fa0';
 
-  // Batch-wise: total vs selected
+  // ---- Batch-wise bar chart ----
   const batches = getBatches();
-  const totals = batches.map(b => students.filter(s => (s.batch || 'अज्ञात / Unknown') === b).length);
-  const selectedCounts = batches.map(b => students.filter(s => (s.batch || 'अज्ञात / Unknown') === b && statusCategory(s.status) === 'selected').length);
-
-  const batchCtx = document.getElementById('batchChart');
-  if (batchCtx){
-    if (batchChartInstance) batchChartInstance.destroy();
-    batchChartInstance = new Chart(batchCtx, {
-      type: 'bar',
-      data: {
-        labels: batches,
-        datasets: [
-          { label: 'कुल / Total', data: totals, backgroundColor: '#c7d2dc', borderRadius: 3 },
-          { label: 'सेलेक्ट / Selected', data: selectedCounts, backgroundColor: leaf, borderRadius: 3 }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
-        scales: {
-          y: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 } } },
-          x: { ticks: { font: { size: 10.5 } } }
-        }
-      }
-    });
+  const batchHost = document.getElementById('batchChart');
+  if (batchHost){
+    if (batches.length === 0){
+      batchHost.innerHTML = '<div class="empty-state" style="padding:30px 10px;">कोई डेटा नहीं / No data yet</div>';
+    } else {
+      const totals = batches.map(b => students.filter(s => (s.batch || 'अज्ञात / Unknown') === b).length);
+      const selectedCounts = batches.map(b => students.filter(s => (s.batch || 'अज्ञात / Unknown') === b && statusCategory(s.status) === 'selected').length);
+      const maxTotal = Math.max(...totals, 1);
+      const rows = batches.map((b, i) => {
+        const totalPct = (totals[i] / maxTotal) * 100;
+        const selPct = (selectedCounts[i] / maxTotal) * 100;
+        return `<div class="bar-row">
+          <div class="bar-row-label"><span>${escapeHtml(b)}</span><span class="cnt">${selectedCounts[i]}/${totals[i]} सेलेक्ट</span></div>
+          <div class="bar-track">
+            <div class="bar-fill-total" style="width:${totalPct}%;"></div>
+            <div class="bar-fill-selected" style="width:${selPct}%;"></div>
+          </div>
+        </div>`;
+      }).join('');
+      batchHost.innerHTML = rows + `<div class="bar-legend">
+        <span><i style="background:#d3dbe3;"></i>कुल छात्र / Total</span>
+        <span><i style="background:${leaf};"></i>सेलेक्ट हुए / Selected</span>
+      </div>`;
+    }
   }
 
-  // Status distribution donut
-  const dist = {
-    'Ongoing': students.filter(s => statusCategory(s.status) === 'ongoing').length,
-    'In process': students.filter(s => statusCategory(s.status) === 'process').length,
-    'Selected': students.filter(s => statusCategory(s.status) === 'selected').length,
-    'Waiting': students.filter(s => statusCategory(s.status) === 'waiting').length,
-    'Fail/Absent': students.filter(s => statusCategory(s.status) === 'fail').length,
-  };
-  const statusCtx = document.getElementById('statusChart');
-  if (statusCtx){
-    if (statusChartInstance) statusChartInstance.destroy();
-    statusChartInstance = new Chart(statusCtx, {
-      type: 'doughnut',
-      data: {
-        labels: Object.keys(dist),
-        datasets: [{
-          data: Object.values(dist),
-          backgroundColor: [purple, navy, leaf, marigold, rust],
-          borderWidth: 2,
-          borderColor: '#ffffff'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '62%',
-        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 }, padding: 10 } } }
-      }
-    });
+  // ---- Status distribution donut chart ----
+  const statusHost = document.getElementById('statusChart');
+  if (statusHost){
+    const total = students.length;
+    const buckets = [
+      {label:'Ongoing / जारी', count: students.filter(s => statusCategory(s.status) === 'ongoing').length, color: purple},
+      {label:'In process / इंटरव्यू', count: students.filter(s => statusCategory(s.status) === 'process').length, color: navy},
+      {label:'Selected / सेलेक्ट', count: students.filter(s => statusCategory(s.status) === 'selected').length, color: leaf},
+      {label:'Waiting / वेटिंग', count: students.filter(s => statusCategory(s.status) === 'waiting').length, color: marigold},
+      {label:'Fail-Absent / फेल', count: students.filter(s => statusCategory(s.status) === 'fail').length, color: rust},
+    ];
+
+    if (total === 0){
+      statusHost.innerHTML = '<div class="empty-state" style="padding:30px 10px;">कोई डेटा नहीं / No data yet</div>';
+    } else {
+      let cursor = 0;
+      const segments = buckets.map(b => {
+        const pct = (b.count / total) * 100;
+        const start = cursor;
+        const end = cursor + pct;
+        cursor = end;
+        return `${b.color} ${start}% ${end}%`;
+      }).join(', ');
+
+      const legendRows = buckets.map(b => {
+        const pct = total ? Math.round((b.count / total) * 100) : 0;
+        return `<div class="row">
+          <i style="background:${b.color};"></i>
+          <span>${escapeHtml(b.label)}</span>
+          <span class="pct">${b.count} · ${pct}%</span>
+        </div>`;
+      }).join('');
+
+      statusHost.innerHTML = `
+        <div class="donut-chart-wrap">
+          <div class="donut-circle" style="background:conic-gradient(${segments});">
+            <div class="donut-center-label"><span class="n">${total}</span><span class="t">कुल / Total</span></div>
+          </div>
+          <div class="donut-legend">${legendRows}</div>
+        </div>`;
+    }
   }
 }
 
