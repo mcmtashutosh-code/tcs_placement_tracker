@@ -59,6 +59,16 @@
     font-weight:500;
     margin-bottom:8px;
   }
+  .batch-note-banner{
+    background:var(--marigold-soft);
+    border:1px solid var(--marigold);
+    border-radius:var(--radius-sm);
+    padding:10px 14px;
+    font-size:13px;
+    color:#6b4a17;
+    margin-bottom:16px;
+  }
+  .batch-note-banner b{color:#6b4a17;}
   .stats{
     display:grid;
     grid-template-columns:repeat(auto-fit, minmax(118px, 1fr));
@@ -576,6 +586,8 @@
 
   <div class="batch-row" id="batchRow"></div>
 
+  <div id="batchNoteBanner"></div>
+
 
   <div class="toolbar">
     <div class="search-box">
@@ -736,12 +748,12 @@ const db = getFirestore(fbApp);
 const studentsDocRef = doc(db, 'tcsTracker', 'students');
 const metaDocRef = doc(db, 'tcsTracker', 'meta');
 const DEFAULT_BATCHES = [
-  {name:'2021-2024', status:'completed'},
-  {name:'2022-2025', status:'completed'},
-  {name:'2023-2026', status:'active'},
-  {name:'2024-2027', status:'active'},
-  {name:'2025-2028', status:'upcoming'},
-  {name:'2026-2029', status:'upcoming'}
+  {name:'2021-2024', status:'completed', note:''},
+  {name:'2022-2025', status:'completed', note:''},
+  {name:'2023-2026', status:'active', note:''},
+  {name:'2024-2027', status:'active', note:''},
+  {name:'2025-2028', status:'upcoming', note:''},
+  {name:'2026-2029', status:'upcoming', note:''}
 ];
 
 const ONGOING_STATUSES = ['Form Filled'];
@@ -832,7 +844,7 @@ async function loadMeta(){
     const data = snap.exists() ? snap.data() : {};
     let raw = Array.isArray(data.batches) ? data.batches : DEFAULT_BATCHES;
     // पुराने डेटा में सिर्फ़ नाम (string) हो सकते हैं, उन्हें object में बदलें / normalize legacy plain-string batches
-    knownBatches = raw.map(b => typeof b === 'string' ? {name: b, status: 'active'} : b);
+    knownBatches = raw.map(b => typeof b === 'string' ? {name: b, status: 'active', note: ''} : {note: '', ...b});
     currentAdminPassword = data.adminPassword || 'tcs2026';
     render();
   }, (err) => {
@@ -843,6 +855,11 @@ async function loadMeta(){
 function getBatchStatus(name){
   const found = knownBatches.find(b => b.name === name);
   return found ? found.status : 'active';
+}
+
+function getBatchNote(name){
+  const found = knownBatches.find(b => b.name === name);
+  return found ? (found.note || '') : '';
 }
 
 async function saveKnownBatches(updated){
@@ -861,7 +878,7 @@ async function addNewBatch(batchName){
     showToast('यह बैच पहले से मौजूद है / This batch already exists');
     return;
   }
-  const updated = [...knownBatches, {name: trimmed, status: 'upcoming'}].sort((a,b) => a.name.localeCompare(b.name));
+  const updated = [...knownBatches, {name: trimmed, status: 'upcoming', note: ''}].sort((a,b) => a.name.localeCompare(b.name));
   await saveKnownBatches(updated);
   showToast('नया बैच जुड़ गया / Batch added');
 }
@@ -869,6 +886,12 @@ async function addNewBatch(batchName){
 async function updateBatchStatus(name, status){
   const updated = knownBatches.map(b => b.name === name ? {...b, status} : b);
   await saveKnownBatches(updated);
+}
+
+async function updateBatchNote(name, note){
+  const updated = knownBatches.map(b => b.name === name ? {...b, note} : b);
+  await saveKnownBatches(updated);
+  showToast('बैच नोट सेव हो गया / Batch note saved');
 }
 
 async function deleteBatch(name){
@@ -1051,7 +1074,8 @@ function renderBatchManagePanel(){
   host.innerHTML = batches.map(b => {
     const count = students.filter(s => s.batch === b).length;
     const st = getBatchStatus(b);
-    return `<div class="batch-manage-row">
+    const note = getBatchNote(b);
+    return `<div class="batch-manage-row" style="flex-wrap:wrap;">
       <span class="bname">${escapeHtml(b)}</span>
       <span class="bcount">${count} students</span>
       <select data-batch="${escapeAttr(b)}" class="batch-status-select">
@@ -1059,6 +1083,8 @@ function renderBatchManagePanel(){
         <option value="active" ${st==='active'?'selected':''}>चालू / Active</option>
         <option value="completed" ${st==='completed'?'selected':''}>पूरा / Completed</option>
       </select>
+      <input type="text" class="batch-note-input" data-batch="${escapeAttr(b)}" value="${escapeAttr(note)}" placeholder="बैच के लिए नोट (जैसे: हायरिंग शुरू नहीं हुई) / note for this batch" style="flex:1; min-width:160px; padding:5px 8px; border:1px solid var(--line); border-radius:var(--radius-sm); font-family:inherit; font-size:12.5px;">
+      <button class="btn-small btn-ghost save-note-btn" data-batch="${escapeAttr(b)}" style="padding:4px 10px; font-size:11.5px;">सेव / Save</button>
       <button class="del-batch-btn" data-batch="${escapeAttr(b)}" title="बैच हटाएँ / Delete batch">✕</button>
     </div>`;
   }).join('');
@@ -1066,6 +1092,13 @@ function renderBatchManagePanel(){
   host.querySelectorAll('.batch-status-select').forEach(sel => {
     sel.addEventListener('change', () => {
       updateBatchStatus(sel.getAttribute('data-batch'), sel.value);
+    });
+  });
+  host.querySelectorAll('.save-note-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const name = btn.getAttribute('data-batch');
+      const input = host.querySelector(`.batch-note-input[data-batch="${CSS.escape(name)}"]`);
+      updateBatchNote(name, input ? input.value.trim() : '');
     });
   });
   host.querySelectorAll('.del-batch-btn').forEach(btn => {
@@ -1276,7 +1309,7 @@ function renderFunnel(){
   const stages = [
     {label:'कुल रजिस्ट्रेशन / Total registration', value: totalRegistration, color:'#22405f'},
     {label:'लिखित परीक्षा दी / Written exam given', value: examGiven, color:'#c07d2b'},
-    {label:'इंटरव्यू क्वालीफाई / Interview qualified', value: interviewQualified, color:'#6b4fa0'},
+    {label:'इंटरव्यू के लिए क्वालीफाई / Qualify for interview', value: interviewQualified, color:'#6b4fa0'},
     {label:'सेलेक्ट / ऑफर / जॉइन / Selected / offer / joined', value: selectedFinal, color:'#3f7d58'},
   ];
 
@@ -1309,12 +1342,29 @@ function renderFunnel(){
   host.innerHTML = funnelHtml + rateHtml;
 }
 
+function renderBatchNoteBanner(){
+  const host = document.getElementById('batchNoteBanner');
+  if (!host) return;
+  if (activeBatch === 'all'){
+    host.innerHTML = '';
+    return;
+  }
+  const note = getBatchNote(activeBatch);
+  const st = getBatchStatus(activeBatch);
+  if (!note){
+    host.innerHTML = '';
+    return;
+  }
+  host.innerHTML = `<div class="batch-note-banner"><b>${escapeHtml(activeBatch)} (${statusTagLabel(st)}):</b> ${escapeHtml(note)}</div>`;
+}
+
 function render(){
   renderStats();
   renderCharts();
   renderFunnel();
   renderTrackRow();
   renderBatchRow();
+  renderBatchNoteBanner();
   renderBatchManagePanel();
   renderTable();
 }
