@@ -656,6 +656,17 @@
           </datalist>
         </div>
         <div class="field">
+          <label>Course / कोर्स (जैसे BBA, B.Com)</label>
+          <input type="text" id="f_course" list="courseList" placeholder="BBA / B.Com / BCA">
+          <datalist id="courseList">
+            <option value="BCA">
+            <option value="BBA">
+            <option value="B.Com">
+            <option value="MBA">
+            <option value="B.Sc">
+          </datalist>
+        </div>
+        <div class="field">
           <label>Email</label>
           <input type="email" id="f_email">
         </div>
@@ -672,6 +683,7 @@
             <option value="Offer letter received">Offer letter received (सेलेक्ट)</option>
             <option value="Documents Uploaded">Documents Uploaded (सेलेक्ट)</option>
             <option value="Batched">Batched (सेलेक्ट)</option>
+            <option value="Joined">Joined (जॉइन कर लिया — सेलेक्ट)</option>
             <option value="No Confirmation Mail">No Confirmation Mail (वेटिंग / waiting)</option>
             <option value="Absent in written Exam">Absent in written Exam (अनुपस्थित)</option>
             <option value="No">No (क्वालीफाई नहीं / not qualified)</option>
@@ -757,7 +769,7 @@ const DEFAULT_BATCHES = [
 ];
 
 const ONGOING_STATUSES = ['Form Filled'];
-const SELECTED_STATUSES = ['Joining Letter Received','Offer letter received','Documents Uploaded','Batched'];
+const SELECTED_STATUSES = ['Joining Letter Received','Offer letter received','Documents Uploaded','Batched','Joined'];
 const WAITING_STATUSES = ['No Confirmation Mail'];
 const ABSENT_STATUSES = ['Absent in written Exam'];
 const FAIL_STATUSES = ['No'];
@@ -1152,7 +1164,7 @@ function renderTable(){
       <td data-label="नाम / Name"><span class="name-cell">${escapeHtml(s.name)}</span><span class="sub">${escapeHtml(s.refId || '')}</span></td>
       <td data-label="University">${escapeHtml(s.university || '—')}<span class="sub">${escapeHtml(s.batch || '')}</span></td>
       <td data-label="Interview">${escapeHtml(s.interview || '—')}</td>
-      <td data-label="Post">${escapeHtml(s.post || '—')}<span class="sub">${escapeHtml(s.track || 'IT')}</span></td>
+      <td data-label="Post">${escapeHtml(s.post || '—')}<span class="sub">${escapeHtml(s.track || 'IT')}${s.course ? ' · ' + escapeHtml(s.course) : ''}</span></td>
       <td data-label="संपर्क / Contact">${escapeHtml(mobileDisplay)}<span class="sub">${escapeHtml(emailDisplay)}</span></td>
       <td data-label="Status"><span class="badge ${cat}">${escapeHtml(statusLabel(s.status))}</span></td>
       <td data-label="Remark">${escapeHtml(s.remark || '—')}</td>
@@ -1395,6 +1407,7 @@ function openEdit(id){
   document.getElementById('f_interview').value = s.interview || '';
   document.getElementById('f_roll').value = s.roll || '';
   document.getElementById('f_post').value = s.post || '';
+  document.getElementById('f_course').value = s.course || '';
   document.getElementById('f_email').value = s.email || '';
   document.getElementById('f_mobile').value = s.mobile || '';
   document.getElementById('f_status').value = s.status || 'Form Filled';
@@ -1420,6 +1433,7 @@ async function submitForm(e){
     interview: document.getElementById('f_interview').value.trim(),
     roll: document.getElementById('f_roll').value.trim(),
     post: document.getElementById('f_post').value.trim(),
+    course: document.getElementById('f_course').value.trim(),
     email: document.getElementById('f_email').value.trim(),
     mobile: document.getElementById('f_mobile').value.trim(),
     status: document.getElementById('f_status').value,
