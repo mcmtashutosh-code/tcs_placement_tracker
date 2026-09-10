@@ -85,6 +85,7 @@
   }
   .stat .num{font-family:'Fraunces', serif; font-size:24px; font-weight:600; color:var(--navy-deep);}
   .stat .lbl{font-size:11.5px; color:var(--slate); margin-top:2px;}
+  .stat .split{font-size:10.5px; color:#8a97a5; margin-top:4px; font-weight:500;}
   .stat.selected .num{color:var(--leaf);}
   .stat.waiting .num{color:var(--marigold);}
   .stat.fail .num{color:var(--rust);}
@@ -549,13 +550,13 @@
 
   <div class="scope-note" id="scopeNote">दिखाया जा रहा है / Showing: सभी बैच / All batches</div>
   <div class="stats" id="statsRow">
-    <div class="stat"><div class="num" id="statTotal">0</div><div class="lbl">कुल छात्र / Total</div></div>
-    <div class="stat ongoing"><div class="num" id="statOngoing">0</div><div class="lbl">फॉर्म भरा / Ongoing</div></div>
-    <div class="stat absent"><div class="num" id="statAbsent">0</div><div class="lbl">अनुपस्थित / Absent</div></div>
-    <div class="stat"><div class="num" id="statProcess">0</div><div class="lbl">इंटरव्यू पेंडिंग / In process</div></div>
-    <div class="stat selected"><div class="num" id="statSelected">0</div><div class="lbl">सेलेक्ट हुए / Selected</div></div>
-    <div class="stat waiting"><div class="num" id="statWaiting">0</div><div class="lbl">वेटिंग में / Waiting</div></div>
-    <div class="stat fail"><div class="num" id="statFail">0</div><div class="lbl">फेल (लिखित) / Not qualified</div></div>
+    <div class="stat"><div class="num" id="statTotal">0</div><div class="lbl">कुल छात्र / Total</div><div class="split" id="statTotalSplit"></div></div>
+    <div class="stat ongoing"><div class="num" id="statOngoing">0</div><div class="lbl">फॉर्म भरा / Ongoing</div><div class="split" id="statOngoingSplit"></div></div>
+    <div class="stat absent"><div class="num" id="statAbsent">0</div><div class="lbl">अनुपस्थित / Absent</div><div class="split" id="statAbsentSplit"></div></div>
+    <div class="stat"><div class="num" id="statProcess">0</div><div class="lbl">इंटरव्यू पेंडिंग / In process</div><div class="split" id="statProcessSplit"></div></div>
+    <div class="stat selected"><div class="num" id="statSelected">0</div><div class="lbl">सेलेक्ट हुए / Selected</div><div class="split" id="statSelectedSplit"></div></div>
+    <div class="stat waiting"><div class="num" id="statWaiting">0</div><div class="lbl">वेटिंग में / Waiting</div><div class="split" id="statWaitingSplit"></div></div>
+    <div class="stat fail"><div class="num" id="statFail">0</div><div class="lbl">फेल (लिखित) / Not qualified</div><div class="split" id="statFailSplit"></div></div>
   </div>
 
   <div class="funnel-card">
@@ -1006,24 +1007,33 @@ function renderTrackRow(){
   });
 }
 
+function trackSplitLabel(list){
+  const it = list.filter(s => (s.track || 'IT') === 'IT').length;
+  const mgmt = list.filter(s => (s.track || 'IT') === 'Management').length;
+  return `IT ${it} · BPS ${mgmt}`;
+}
+
 function renderStats(){
   const scoped = scopedStudents();
-  const total = scoped.length;
-  const ongoing = scoped.filter(s => statusCategory(s.status) === 'ongoing').length;
-  const absent = scoped.filter(s => statusCategory(s.status) === 'absent').length;
-  const selected = scoped.filter(s => statusCategory(s.status) === 'selected').length;
-  const waiting = scoped.filter(s => statusCategory(s.status) === 'waiting').length;
-  const fail = scoped.filter(s => statusCategory(s.status) === 'fail').length;
-  const process = scoped.filter(s => statusCategory(s.status) === 'process').length;
+  const groups = {
+    total: scoped,
+    ongoing: scoped.filter(s => statusCategory(s.status) === 'ongoing'),
+    absent: scoped.filter(s => statusCategory(s.status) === 'absent'),
+    selected: scoped.filter(s => statusCategory(s.status) === 'selected'),
+    waiting: scoped.filter(s => statusCategory(s.status) === 'waiting'),
+    fail: scoped.filter(s => statusCategory(s.status) === 'fail'),
+    process: scoped.filter(s => statusCategory(s.status) === 'process'),
+  };
 
   document.getElementById('totalHeadCount').textContent = students.length;
-  document.getElementById('statTotal').textContent = total;
-  document.getElementById('statOngoing').textContent = ongoing;
-  document.getElementById('statAbsent').textContent = absent;
-  document.getElementById('statSelected').textContent = selected;
-  document.getElementById('statWaiting').textContent = waiting;
-  document.getElementById('statFail').textContent = fail;
-  document.getElementById('statProcess').textContent = process;
+
+  Object.keys(groups).forEach(key => {
+    const idBase = 'stat' + key.charAt(0).toUpperCase() + key.slice(1);
+    const numEl = document.getElementById(idBase);
+    const splitEl = document.getElementById(idBase + 'Split');
+    if (numEl) numEl.textContent = groups[key].length;
+    if (splitEl) splitEl.textContent = trackSplitLabel(groups[key]);
+  });
 
   const scopeNoteEl = document.getElementById('scopeNote');
   if (scopeNoteEl) scopeNoteEl.textContent = 'दिखाया जा रहा है / Showing: ' + scopeLabel();
