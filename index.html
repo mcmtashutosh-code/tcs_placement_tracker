@@ -36,6 +36,28 @@
   h1,h2,h3{font-family:'Fraunces', serif; margin:0;}
   .wrap{max-width:1180px; margin:0 auto; padding:28px 20px 80px;}
 
+  .section-eyebrow{
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:0.06em;
+    color:var(--navy);
+    text-transform:uppercase;
+    padding-bottom:6px;
+    border-bottom:2px solid var(--marigold);
+    margin:36px 0 16px;
+    display:inline-block;
+  }
+  .section-eyebrow:first-of-type{margin-top:0;}
+
+  .app-footer{
+    margin-top:24px;
+    padding-top:16px;
+    border-top:1px solid var(--line);
+    font-size:11.5px;
+    color:var(--slate);
+    text-align:center;
+  }
+
   /* Header */
   .masthead{
     display:flex;
@@ -549,6 +571,7 @@
     </div>
   </div>
 
+  <div class="section-eyebrow">आँकड़े और विश्लेषण / Analytics overview</div>
   <div class="scope-note" id="scopeNote">दिखाया जा रहा है / Showing: सभी बैच / All batches</div>
   <div class="stats" id="statsRow">
     <div class="stat"><div class="num" id="statTotal">0</div><div class="lbl">कुल छात्र / Total</div><div class="split" id="statTotalSplit"></div></div>
@@ -585,17 +608,18 @@
     <div id="batchManageHost"></div>
   </div>
 
+  <div class="section-eyebrow">छात्र रिकॉर्ड / Student records</div>
   <div class="track-row" id="trackRow"></div>
 
   <div class="batch-row" id="batchRow"></div>
 
   <div id="batchNoteBanner"></div>
 
-
   <div class="toolbar">
     <div class="search-box">
       <input type="text" id="searchInput" placeholder="नाम, यूनिवर्सिटी या रेफरेंस ID से खोजें... / Search by name, university or reference ID...">
     </div>
+    <button class="btn btn-ghost" id="exportBtn">⬇ CSV एक्सपोर्ट / Export</button>
     <button class="btn btn-primary admin-only" id="addBtn">+ नया छात्र जोड़ें / Add student</button>
   </div>
 
@@ -603,6 +627,10 @@
     <div id="tableHost">
       <div class="loading-note">रिकॉर्ड लोड हो रहा है... / Loading records...</div>
     </div>
+  </div>
+
+  <div class="app-footer">
+    <span id="footerSync">डेटा लाइव सिंक हो रहा है / Data syncing live</span> · TCS Placement Tracker
   </div>
 </div>
 
@@ -838,6 +866,12 @@ async function loadStudents(){
   onSnapshot(studentsDocRef, (snap) => {
     students = (snap.exists() && snap.data().list) || [];
     render();
+    const footerEl = document.getElementById('footerSync');
+    if (footerEl){
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('hi-IN', {hour:'2-digit', minute:'2-digit'});
+      footerEl.textContent = `आख़िरी सिंक / Last synced: ${timeStr}`;
+    }
   }, (err) => {
     console.error('Firestore snapshot error', err);
     document.getElementById('tableHost').innerHTML =
@@ -1158,6 +1192,43 @@ function maskMobile(mobile){
   if (digits.length <= 2) return '•'.repeat(digits.length);
   const lastTwo = digits.slice(-2);
   return '•'.repeat(digits.length - 2) + lastTwo;
+}
+
+function csvEscape(val){
+  const s = String(val == null ? '' : val);
+  if (s.includes(',') || s.includes('"') || s.includes('\n')){
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  return s;
+}
+
+function exportCSV(){
+  const list = filteredStudents().slice().sort((a,b) => (a.name||'').localeCompare(b.name||''));
+  if (list.length === 0){
+    showToast('एक्सपोर्ट करने के लिए कोई रिकॉर्ड नहीं / No records to export');
+    return;
+  }
+  const headers = ['Name','Reference ID','Track','Course','University','Batch','Interview','Post','Mobile','Email','Status','Remark'];
+  const rows = list.map(s => {
+    const mobile = isAdmin ? (s.mobile || '') : maskMobile(s.mobile);
+    const email = isAdmin ? (s.email || '') : maskEmail(s.email);
+    return [
+      s.name, s.refId, s.track || 'IT', s.course || '', s.university, s.batch,
+      s.interview, s.post, mobile, email, s.status, s.remark
+    ].map(csvEscape).join(',');
+  });
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob(['\uFEFF' + csv], {type: 'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const scopeSuffix = activeBatch === 'all' ? 'all-batches' : activeBatch;
+  a.href = url;
+  a.download = `tcs-students-${scopeSuffix}-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showToast('CSV डाउनलोड हो गया / CSV downloaded');
 }
 
 function renderTable(){
@@ -1498,6 +1569,7 @@ async function doDelete(){
 }
 
 document.getElementById('addBtn').addEventListener('click', openAdd);
+document.getElementById('exportBtn').addEventListener('click', exportCSV);
 document.getElementById('cancelBtn').addEventListener('click', closeForm);
 document.getElementById('studentForm').addEventListener('submit', submitForm);
 document.getElementById('formOverlay').addEventListener('click', (e) => { if (e.target.id === 'formOverlay') closeForm(); });
