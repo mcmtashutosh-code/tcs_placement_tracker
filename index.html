@@ -716,9 +716,15 @@
             <option value="Batched">Batched (सेलेक्ट)</option>
             <option value="Joined">Joined (जॉइन कर लिया — सेलेक्ट)</option>
             <option value="No Confirmation Mail">No Confirmation Mail (वेटिंग / waiting)</option>
+            <option value="Interview Done - Not Selected">Interview Done - Not Selected (इंटरव्यू हुआ, सेलेक्ट नहीं हुआ)</option>
             <option value="Absent in written Exam">Absent in written Exam (अनुपस्थित)</option>
             <option value="No">No (क्वालीफाई नहीं / not qualified)</option>
+            <option value="Others">Others (अन्य — खुद लिखें / type your own)</option>
           </select>
+        </div>
+        <div class="field" id="f_statusOtherWrap" style="display:none;">
+          <label>Status लिखें / Type the status</label>
+          <input type="text" id="f_statusOther" placeholder="जो भी runtime status हो वो यहाँ लिखें / type any status here">
         </div>
         <div class="field span2">
           <label>Remark / टिप्पणी</label>
@@ -803,8 +809,9 @@ const ONGOING_STATUSES = ['Form Filled'];
 const SELECTED_STATUSES = ['Joining Letter Received','Offer letter received','Documents Uploaded','Batched','Joined'];
 const WAITING_STATUSES = ['No Confirmation Mail'];
 const ABSENT_STATUSES = ['Absent in written Exam'];
-const FAIL_STATUSES = ['No'];
+const FAIL_STATUSES = ['No', 'Interview Done - Not Selected'];
 const PROCESS_STATUSES = ['Written Qualify'];
+const KNOWN_STATUS_VALUES = ['Form Filled','Written Qualify','Joining Letter Received','Offer letter received','Documents Uploaded','Batched','Joined','No Confirmation Mail','Interview Done - Not Selected','Absent in written Exam','No'];
 
 let students = [];
 let activeBatch = 'all';
@@ -1468,6 +1475,13 @@ function render(){
   renderTable();
 }
 
+function syncStatusOtherVisibility(){
+  const sel = document.getElementById('f_status');
+  const wrap = document.getElementById('f_statusOtherWrap');
+  if (!sel || !wrap) return;
+  wrap.style.display = sel.value === 'Others' ? 'flex' : 'none';
+}
+
 function openAdd(){
   if (!isAdmin) return;
   editingId = null;
@@ -1475,6 +1489,8 @@ function openAdd(){
   document.getElementById('formSub').textContent = 'सभी विवरण भरें — जो जानकारी अभी नहीं है उसे खाली छोड़ सकते हैं। / Fill in what you can — leave unknown fields blank.';
   document.getElementById('studentForm').reset();
   document.getElementById('f_track').value = 'IT';
+  document.getElementById('f_statusOther').value = '';
+  syncStatusOtherVisibility();
   document.getElementById('formOverlay').classList.add('show');
   document.getElementById('f_name').focus();
 }
@@ -1497,7 +1513,14 @@ function openEdit(id){
   document.getElementById('f_course').value = s.course || '';
   document.getElementById('f_email').value = s.email || '';
   document.getElementById('f_mobile').value = s.mobile || '';
-  document.getElementById('f_status').value = s.status || 'Form Filled';
+  if (s.status && !KNOWN_STATUS_VALUES.includes(s.status)){
+    document.getElementById('f_status').value = 'Others';
+    document.getElementById('f_statusOther').value = s.status;
+  } else {
+    document.getElementById('f_status').value = s.status || 'Form Filled';
+    document.getElementById('f_statusOther').value = '';
+  }
+  syncStatusOtherVisibility();
   document.getElementById('f_remark').value = s.remark || '';
   document.getElementById('formOverlay').classList.add('show');
 }
@@ -1511,6 +1534,11 @@ async function submitForm(e){
   e.preventDefault();
   const name = document.getElementById('f_name').value.trim();
   if (!name){ return; }
+  let statusVal = document.getElementById('f_status').value;
+  if (statusVal === 'Others'){
+    const customStatus = document.getElementById('f_statusOther').value.trim();
+    statusVal = customStatus || 'Others';
+  }
   const data = {
     name,
     refId: document.getElementById('f_refId').value.trim(),
@@ -1523,7 +1551,7 @@ async function submitForm(e){
     course: document.getElementById('f_course').value.trim(),
     email: document.getElementById('f_email').value.trim(),
     mobile: document.getElementById('f_mobile').value.trim(),
-    status: document.getElementById('f_status').value,
+    status: statusVal,
     remark: document.getElementById('f_remark').value.trim(),
   };
 
@@ -1577,6 +1605,7 @@ document.getElementById('confirmCancel').addEventListener('click', closeConfirm)
 document.getElementById('confirmDelete').addEventListener('click', doDelete);
 document.getElementById('confirmOverlay').addEventListener('click', (e) => { if (e.target.id === 'confirmOverlay') closeConfirm(); });
 document.getElementById('searchInput').addEventListener('input', (e) => { searchTerm = e.target.value; renderTable(); });
+document.getElementById('f_status').addEventListener('change', syncStatusOtherVisibility);
 
 function updateAuthUI(){
   document.body.classList.toggle('is-admin', isAdmin);
