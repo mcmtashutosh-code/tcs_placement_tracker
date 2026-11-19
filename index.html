@@ -6,6 +6,8 @@
 <title>TCS प्लेसमेंट ट्रैकर / TCS Placement Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
   :root{
     --ink:#1c2b3a;
@@ -620,6 +622,7 @@
       <input type="text" id="searchInput" placeholder="नाम, यूनिवर्सिटी या रेफरेंस ID से खोजें... / Search by name, university or reference ID...">
     </div>
     <button class="btn btn-ghost" id="exportBtn">⬇ CSV एक्सपोर्ट / Export</button>
+    <button class="btn btn-ghost" id="pdfBtn">⬇ PDF डाउनलोड / Download PDF</button>
     <button class="btn btn-primary admin-only" id="addBtn">+ नया छात्र जोड़ें / Add student</button>
   </div>
 
@@ -1238,6 +1241,95 @@ function exportCSV(){
   showToast('CSV डाउनलोड हो गया / CSV downloaded');
 }
 
+function batchStudentsForExport(batchName){
+  let list = students.filter(s => (s.batch || 'अज्ञात / Unknown') === batchName);
+  if (activeTrack !== 'all'){
+    list = list.filter(s => (s.track || 'IT') === activeTrack);
+  }
+  if (searchTerm.trim()){
+    const q = searchTerm.trim().toLowerCase();
+    list = list.filter(s =>
+      (s.name || '').toLowerCase().includes(q) ||
+      (s.university || '').toLowerCase().includes(q) ||
+      (s.refId || '').toLowerCase().includes(q) ||
+      (s.roll || '').toLowerCase().includes(q)
+    );
+  }
+  return list.slice().sort((a,b) => (a.name||'').localeCompare(b.name||''));
+}
+
+function exportPDF(){
+  if (!window.jspdf || !window.jspdf.jsPDF){
+    showToast('PDF लाइब्रेरी लोड नहीं हुई, दोबारा कोशिश करें / PDF library did not load, please retry');
+    return;
+  }
+  const groupNames = activeBatch === 'all' ? getBatches() : [activeBatch];
+  const groups = groupNames
+    .map(name => ({ name, list: batchStudentsForExport(name) }))
+    .filter(g => g.list.length > 0);
+
+  if (groups.length === 0){
+    showToast('PDF के लिए कोई रिकॉर्ड नहीं / No records to export');
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+  const marginX = 28;
+  const pageBottom = doc.internal.pageSize.getHeight() - 30;
+  let cursorY = 36;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.text('TCS Placement Tracker - Student Record / Chhaatr Record', marginX, cursorY);
+  cursorY += 14;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(90, 100, 110);
+  doc.text(`Generated: ${new Date().toLocaleString('en-IN')} | Scope: ${activeBatch === 'all' ? 'All batches' : activeBatch}${activeTrack !== 'all' ? ' | ' + activeTrack : ''}${searchTerm.trim() ? ' | search: ' + searchTerm.trim() : ''}`, marginX, cursorY);
+  doc.setTextColor(28, 43, 58);
+  cursorY += 16;
+
+  const headers = [['Name','Reference ID','University','Interview','Roll/Enroll','Post','Mobile','Email','Status','Remark']];
+
+  groups.forEach((g, idx) => {
+    if (idx > 0 && cursorY > pageBottom - 60){
+      doc.addPage();
+      cursorY = 36;
+    }
+    const selCount = g.list.filter(s => statusCategory(s.status) === 'selected').length;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text(`Batch: ${g.name}  -  ${selCount}/${g.list.length} selected`, marginX, cursorY);
+    cursorY += 6;
+
+    const body = g.list.map(s => {
+      const mobile = isAdmin ? (s.mobile || '') : maskMobile(s.mobile);
+      const email = isAdmin ? (s.email || '') : maskEmail(s.email);
+      return [s.name || '', s.refId || '', s.university || '', s.interview || '', s.roll || '', s.post || '', mobile || '', email || '', s.status || '', s.remark || ''];
+    });
+
+    doc.autoTable({
+      head: headers,
+      body,
+      startY: cursorY + 6,
+      margin: { left: marginX, right: marginX },
+      styles: { fontSize: 7.5, cellPadding: 4, overflow: 'linebreak' },
+      headStyles: { fillColor: [34, 64, 95], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [238, 241, 244] },
+      bodyStyles: { fillColor: [255, 255, 255] },
+      theme: 'striped',
+      columnStyles: { 9: { cellWidth: 110 } },
+    });
+
+    cursorY = doc.lastAutoTable.finalY + 22;
+  });
+
+  const scopeSuffix = activeBatch === 'all' ? 'all-batches' : activeBatch;
+  doc.save(`tcs-students-${scopeSuffix}-${new Date().toISOString().slice(0,10)}.pdf`);
+  showToast('PDF डाउनलोड हो गया / PDF downloaded');
+}
+
 function renderTable(){
   const host = document.getElementById('tableHost');
   const list = filteredStudents().slice().sort((a,b) => (a.name||'').localeCompare(b.name||''));
@@ -1598,6 +1690,7 @@ async function doDelete(){
 
 document.getElementById('addBtn').addEventListener('click', openAdd);
 document.getElementById('exportBtn').addEventListener('click', exportCSV);
+document.getElementById('pdfBtn').addEventListener('click', exportPDF);
 document.getElementById('cancelBtn').addEventListener('click', closeForm);
 document.getElementById('studentForm').addEventListener('submit', submitForm);
 document.getElementById('formOverlay').addEventListener('click', (e) => { if (e.target.id === 'formOverlay') closeForm(); });
