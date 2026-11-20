@@ -13,6 +13,7 @@
     --ink:#1c2b3a;
     --navy:#22405f;
     --navy-deep:#152a3f;
+    --navy-pale:#2d4a69;
     --paper:#eef1f4;
     --paper-raised:#ffffff;
     --line:#d7dde3;
@@ -22,9 +23,14 @@
     --leaf-soft:#e0efe4;
     --rust:#a8482f;
     --rust-soft:#f5e0da;
+    --purple:#6b4fa0;
     --slate:#5c6b7a;
-    --radius-sm:4px;
-    --radius-md:8px;
+    --radius-sm:6px;
+    --radius-md:10px;
+    --radius-lg:14px;
+    --shadow-sm:0 1px 2px rgba(21,42,63,0.06), 0 1px 1px rgba(21,42,63,0.04);
+    --shadow-md:0 4px 14px rgba(21,42,63,0.08), 0 1px 3px rgba(21,42,63,0.06);
+    --shadow-lg:0 12px 32px rgba(21,42,63,0.16), 0 2px 8px rgba(21,42,63,0.08);
   }
   *{box-sizing:border-box;}
   body{
@@ -36,7 +42,7 @@
     line-height:1.5;
   }
   h1,h2,h3{font-family:'Fraunces', serif; margin:0;}
-  .wrap{max-width:1180px; margin:0 auto; padding:28px 20px 80px;}
+  .wrap{max-width:1240px; margin:0 auto; padding:24px 22px 80px;}
 
   .section-eyebrow{
     font-size:11px;
@@ -61,20 +67,40 @@
   }
 
   /* Header */
+  .topbar{
+    position:sticky;
+    top:0;
+    z-index:40;
+    background:linear-gradient(180deg, var(--navy-deep), var(--navy));
+    box-shadow:var(--shadow-lg);
+  }
   .masthead{
+    max-width:1240px;
+    margin:0 auto;
+    padding:18px 22px;
     display:flex;
     justify-content:space-between;
     align-items:flex-end;
     gap:20px;
-    border-bottom:3px solid var(--navy);
-    padding-bottom:18px;
-    margin-bottom:26px;
     flex-wrap:wrap;
   }
-  .masthead h1{font-size:30px; font-weight:600; color:var(--navy-deep); letter-spacing:-0.01em;}
-  .masthead p{margin:6px 0 0; color:var(--slate); font-size:14px; max-width:520px;}
-  .masthead-right{text-align:right; font-size:13px; color:var(--slate);}
-  .masthead-right .count{font-family:'Fraunces', serif; font-size:34px; color:var(--marigold); line-height:1;}
+  .masthead .brand-row{display:flex; align-items:center; gap:12px;}
+  .masthead .brand-mark{
+    width:40px; height:40px; border-radius:10px; flex-shrink:0;
+    background:linear-gradient(135deg, var(--marigold), #e0a44c);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces', serif; font-weight:700; font-size:18px; color:#2a1c05;
+    box-shadow:var(--shadow-sm);
+  }
+  .masthead h1{font-size:24px; font-weight:600; color:#fff; letter-spacing:-0.01em;}
+  .masthead h1 span{color:#c7d4e2 !important;}
+  .masthead p{margin:5px 0 0; color:#aebccb; font-size:13px; max-width:520px;}
+  .masthead-right{text-align:right; font-size:13px; color:#aebccb;}
+  .masthead-right .count{font-family:'Fraunces', serif; font-size:30px; color:#f0b86a; line-height:1;}
+  .auth-status{background:rgba(255,255,255,0.12); color:#e8edf2;}
+  .auth-status.on{background:var(--leaf); color:#fff;}
+  .link-btn{color:#dce6f0;}
+  .link-btn:hover{color:#fff;}
 
   /* Stats row */
   .scope-note{
@@ -95,26 +121,34 @@
   .batch-note-banner b{color:#6b4a17;}
   .stats{
     display:grid;
-    grid-template-columns:repeat(auto-fit, minmax(118px, 1fr));
-    gap:1px;
-    background:var(--line);
-    border:1px solid var(--line);
-    border-radius:var(--radius-md);
-    overflow:hidden;
-    margin-bottom:20px;
+    grid-template-columns:repeat(auto-fit, minmax(124px, 1fr));
+    gap:12px;
+    margin-bottom:22px;
   }
   .stat{
     background:var(--paper-raised);
-    padding:14px 14px;
+    border:1px solid var(--line);
+    border-left:3px solid var(--navy);
+    border-radius:var(--radius-md);
+    box-shadow:var(--shadow-sm);
+    padding:13px 15px;
+    transition:box-shadow .15s, transform .15s;
   }
+  .stat:hover{box-shadow:var(--shadow-md); transform:translateY(-1px);}
   .stat .num{font-family:'Fraunces', serif; font-size:24px; font-weight:600; color:var(--navy-deep);}
   .stat .lbl{font-size:11.5px; color:var(--slate); margin-top:2px;}
   .stat .split{font-size:10.5px; color:#8a97a5; margin-top:4px; font-weight:500; display:flex; flex-direction:column; gap:1px;}
+  .stat.selected{border-left-color:var(--leaf);}
   .stat.selected .num{color:var(--leaf);}
+  .stat.waiting{border-left-color:var(--marigold);}
   .stat.waiting .num{color:var(--marigold);}
+  .stat.fail{border-left-color:var(--rust);}
   .stat.fail .num{color:var(--rust);}
+  .stat.absent{border-left-color:#8a97a5;}
   .stat.absent .num{color:#5c6b7a;}
+  .stat.examgiven{border-left-color:#c07d2b;}
   .stat.examgiven .num{color:#c07d2b;}
+  .stat.ongoing{border-left-color:var(--purple);}
   .stat.ongoing .num{color:#6b4fa0;}
 
   /* Charts */
@@ -127,8 +161,9 @@
   .chart-card{
     background:var(--paper-raised);
     border:1px solid var(--line);
-    border-radius:var(--radius-md);
-    padding:16px 18px 10px;
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-sm);
+    padding:18px 20px 12px;
   }
   .chart-card h3{
     font-size:14.5px;
@@ -216,8 +251,9 @@
   .funnel-card{
     background:var(--paper-raised);
     border:1px solid var(--line);
-    border-radius:var(--radius-md);
-    padding:18px 20px 16px;
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-sm);
+    padding:20px 22px 18px;
     margin-bottom:24px;
   }
   .funnel-card h3{
@@ -225,6 +261,60 @@
     font-family:'IBM Plex Sans', sans-serif; margin-bottom:4px;
   }
   .funnel-note{font-size:12px; color:var(--slate); margin-bottom:16px;}
+
+  /* Audit report table */
+  .audit-table-wrap{overflow-x:auto; border-radius:var(--radius-sm); border:1px solid var(--line);}
+  table.audit-table{width:100%; border-collapse:collapse; font-size:12.6px; min-width:760px;}
+  table.audit-table thead th{
+    background:var(--navy-deep); color:#e8edf2; padding:10px 10px;
+    text-align:left; white-space:normal; font-weight:500; font-size:11.2px;
+    max-width:110px;
+  }
+  table.audit-table thead th .th-en{display:block; font-weight:600;}
+  table.audit-table thead th .th-hi{display:block; font-weight:400; font-size:10px; opacity:0.82; margin-top:1px;}
+  table.audit-table tbody td, table.audit-table tfoot td{
+    padding:9px 12px; border-bottom:1px solid var(--line); white-space:nowrap;
+  }
+  table.audit-table tbody tr:nth-child(odd){background:#ffffff;}
+  table.audit-table tbody tr:nth-child(even){background:var(--paper);}
+  table.audit-table tbody tr:hover{background:#dfe7f0;}
+  table.audit-table .audit-batch{font-weight:600; color:var(--navy-deep);}
+  table.audit-table tfoot td{background:#dfe7f0; border-top:2px solid var(--navy); border-bottom:none; font-weight:600;}
+  .audit-rate{display:inline-block; padding:3px 10px; border-radius:999px; font-weight:600; font-size:11.5px;}
+  .audit-rate.good{background:var(--leaf-soft); color:var(--leaf);}
+  .audit-rate.mid{background:var(--marigold-soft); color:var(--marigold);}
+  .audit-rate.low{background:var(--rust-soft); color:var(--rust);}
+
+  /* Trend chart */
+  .trend-toggle-row{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;}
+  .trend-toggle-btn{
+    display:inline-flex; align-items:center; gap:7px;
+    border:1px solid var(--line);
+    background:var(--paper-raised);
+    color:var(--slate);
+    padding:7px 13px;
+    border-radius:999px;
+    font-family:inherit;
+    font-size:12.5px;
+    font-weight:500;
+    cursor:pointer;
+    box-shadow:var(--shadow-sm);
+    opacity:0.55;
+    transition:opacity .15s, box-shadow .15s, border-color .15s;
+  }
+  .trend-toggle-btn i{width:9px; height:9px; border-radius:3px; display:inline-block; flex-shrink:0;}
+  .trend-toggle-btn.active{opacity:1; color:var(--ink); border-color:var(--navy); box-shadow:var(--shadow-md);}
+  .trend-toggle-btn:hover{opacity:0.85;}
+  .audit-controls{background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-sm); padding:12px 14px; margin-bottom:16px;}
+  .audit-controls .audit-controls-label{font-size:12px; font-weight:600; color:var(--slate); text-transform:uppercase; letter-spacing:.03em; margin-bottom:8px;}
+  .audit-controls .audit-check-row{display:flex; gap:16px; flex-wrap:wrap; align-items:center; margin-bottom:10px;}
+  .audit-controls .audit-check-row:last-child{margin-bottom:0;}
+  .audit-controls label{display:flex; align-items:center; gap:6px; font-size:13.5px; color:var(--ink); cursor:pointer;}
+  .audit-controls input[type="checkbox"]{width:15px; height:15px; cursor:pointer; accent-color:var(--navy);}
+  .trend-summary{margin-top:10px; font-size:12.5px; color:var(--slate);}
+  .trend-up{color:var(--leaf); font-weight:600;}
+  .trend-down{color:var(--rust); font-weight:600;}
+  .trend-flat{color:var(--slate); font-weight:600;}
   .funnel-row{margin-bottom:13px;}
   .funnel-row:last-child{margin-bottom:0;}
   .funnel-row-label{
@@ -246,6 +336,13 @@
   .rate-pct{font-family:'Fraunces', serif; font-size:26px; font-weight:600; color:var(--navy-deep); line-height:1;}
   .rate-lbl{font-size:12px; color:var(--ink); margin-top:4px; font-weight:500;}
   .rate-sub{font-size:11px; color:var(--slate); margin-top:2px;}
+  .rate-cards.cols3{grid-template-columns:repeat(3,1fr);}
+  .rate-card.tone-a .rate-pct{color:var(--navy);}
+  .rate-card.tone-b .rate-pct{color:var(--marigold);}
+  .rate-card.tone-c .rate-pct{color:var(--leaf);}
+  @media(max-width:700px){
+    .rate-cards.cols3{grid-template-columns:1fr;}
+  }
   @media(max-width:560px){
     .rate-cards{grid-template-columns:1fr;}
   }
@@ -255,6 +352,7 @@
     background:var(--paper-raised);
     border:1px solid var(--line);
     border-radius:var(--radius-md);
+    box-shadow:var(--shadow-sm);
     padding:14px 16px;
     margin-bottom:16px;
   }
@@ -279,6 +377,48 @@
     cursor:pointer; font-size:13px;
   }
   .batch-manage-row .del-batch-btn:hover{border-color:var(--rust);}
+  .pending-panel{
+    background:var(--marigold-soft); border:1px solid var(--marigold);
+    border-radius:var(--radius-md); padding:14px 16px; margin-bottom:18px;
+  }
+  .pending-panel h4{font-size:13.5px; font-weight:600; color:var(--navy-deep); margin-bottom:4px; font-family:'IBM Plex Sans', sans-serif;}
+  .pending-link-box{
+    display:flex; gap:8px; align-items:center; background:#fff; border:1px solid var(--line);
+    border-radius:var(--radius-sm); padding:8px 10px; margin:10px 0 14px; flex-wrap:wrap;
+  }
+  .pending-link-box input{flex:1; min-width:180px; border:none; background:transparent; font-size:12.5px; color:var(--slate); font-family:monospace;}
+  .pending-row{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    background:#fff; border:1px solid var(--line); border-radius:var(--radius-sm);
+    padding:10px 12px; margin-bottom:8px; font-size:13px;
+  }
+  .pending-row .pname{font-weight:600; color:var(--navy-deep); min-width:140px;}
+  .pending-row .pmeta{color:var(--slate); font-size:12px; flex:1; min-width:160px;}
+  .pending-row .prow-actions{display:flex; gap:6px; margin-left:auto;}
+  .pending-approve-btn, .pending-reject-btn{
+    border:1px solid var(--line); border-radius:var(--radius-sm); padding:5px 10px;
+    font-size:12px; font-weight:600; cursor:pointer; background:var(--paper-raised);
+  }
+  .pending-approve-btn{color:var(--leaf); border-color:var(--leaf);}
+  .pending-approve-btn:hover{background:var(--leaf-soft);}
+  .pending-reject-btn{color:var(--rust); border-color:var(--rust);}
+  .pending-reject-btn:hover{background:var(--rust-soft);}
+  .pending-edit-btn{
+    border:1px solid var(--line); border-radius:var(--radius-sm); padding:5px 10px;
+    font-size:12px; font-weight:600; cursor:pointer; background:var(--paper-raised);
+    color:var(--navy); border-color:var(--navy);
+  }
+  .pending-edit-btn:hover{background:#dfe7f0;}
+  .pending-panel-collapsed{margin-bottom:18px;}
+  .pending-row-editing{display:block;}
+  .pending-edit-grid{
+    display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:10px;
+  }
+  .pending-edit-input{
+    border:1px solid var(--line); border-radius:var(--radius-sm); padding:6px 8px;
+    font-size:12.5px; font-family:inherit; color:var(--navy-deep); background:#fff;
+  }
+  @media (max-width:640px){ .pending-edit-grid{grid-template-columns:repeat(2, 1fr);} }
   .status-tag{
     font-size:10.5px; padding:2px 8px; border-radius:999px; font-weight:500;
   }
@@ -304,13 +444,15 @@
     display:flex;
     align-items:center;
     gap:8px;
-    transition:border-color .15s, background .15s;
+    box-shadow:var(--shadow-sm);
+    transition:border-color .15s, background .15s, box-shadow .15s, transform .15s;
   }
-  .batch-pill:hover{border-color:var(--navy);}
+  .batch-pill:hover{border-color:var(--navy); box-shadow:var(--shadow-md); transform:translateY(-1px);}
   .batch-pill.active{
     background:var(--navy-deep);
     border-color:var(--navy-deep);
     color:#fff;
+    box-shadow:var(--shadow-md);
   }
   .batch-pill .tally{
     font-size:11.5px;
@@ -337,11 +479,12 @@
     border:1px solid var(--line);
     border-radius:var(--radius-sm);
     background:var(--paper-raised);
+    box-shadow:var(--shadow-sm);
     font-family:inherit;
     font-size:14px;
     color:var(--ink);
   }
-  .search-box input:focus{outline:2px solid var(--navy); outline-offset:1px;}
+  .search-box input:focus{outline:2px solid var(--navy); outline-offset:1px; box-shadow:var(--shadow-md);}
   .btn{
     border:none;
     padding:10px 18px;
@@ -350,19 +493,23 @@
     font-size:14px;
     font-weight:500;
     cursor:pointer;
-    transition:filter .15s;
+    box-shadow:var(--shadow-sm);
+    transition:filter .15s, box-shadow .15s, transform .15s;
   }
-  .btn:hover{filter:brightness(1.08);}
-  .btn-primary{background:var(--navy-deep); color:#fff;}
-  .btn-ghost{background:transparent; color:var(--navy-deep); border:1px solid var(--line);}
-  .btn-danger{background:var(--rust-soft); color:var(--rust);}
+  .btn:hover{filter:brightness(1.08); box-shadow:var(--shadow-md); transform:translateY(-1px);}
+  .btn:active{transform:translateY(0); filter:brightness(0.97);}
+  .btn-primary{background:linear-gradient(180deg, var(--navy), var(--navy-deep)); color:#fff;}
+  .btn-ghost{background:var(--paper-raised); color:var(--navy-deep); border:1px solid var(--line); box-shadow:none;}
+  .btn-ghost:hover{box-shadow:var(--shadow-sm);}
+  .btn-danger{background:var(--rust-soft); color:var(--rust); box-shadow:none;}
   .btn-small{padding:6px 12px; font-size:13px;}
 
   /* Table */
   .table-shell{
     background:var(--paper-raised);
     border:1px solid var(--line);
-    border-radius:var(--radius-md);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-md);
     overflow:hidden;
   }
   table{width:100%; border-collapse:collapse; font-size:13.8px;}
@@ -381,7 +528,9 @@
     vertical-align:top;
   }
   tbody tr:last-child td{border-bottom:none;}
-  tbody tr:hover{background:#f5f7f9;}
+  tbody tr:nth-child(odd){background:#ffffff;}
+  tbody tr:nth-child(even){background:#eef1f4;}
+  tbody tr:hover{background:#dfe7f0;}
   .name-cell{font-weight:600; color:var(--navy-deep);}
   .sub{display:block; font-size:12px; color:var(--slate); font-weight:400; margin-top:1px;}
   .badge{
@@ -414,6 +563,15 @@
   }
   .track-pill:hover{border-color:var(--navy);}
   .track-pill.active{background:var(--marigold); border-color:var(--marigold); color:#fff;}
+  .status-chip-row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+  .status-chip{
+    display:inline-flex; align-items:center; gap:7px;
+    border:1px solid var(--line); background:var(--paper-raised); color:var(--ink);
+    padding:6px 12px; border-radius:999px; font-size:12.5px; cursor:pointer;
+  }
+  .status-chip:hover{border-color:var(--navy);}
+  .status-chip.active{border-color:var(--navy); box-shadow:var(--shadow-md); font-weight:600;}
+  .status-chip .chip-count{background:rgba(0,0,0,0.08); padding:1px 8px; border-radius:999px; font-size:11px; font-weight:700;}
   .row-actions{display:flex; gap:6px; white-space:nowrap;}
   .icon-btn{
     border:1px solid var(--line);
@@ -449,22 +607,33 @@
   .overlay.show{display:flex;}
   .modal{
     background:var(--paper-raised);
-    border-radius:var(--radius-md);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-lg);
     width:100%;
     max-width:620px;
     padding:26px 28px 28px;
   }
   .modal h2{font-size:21px; color:var(--navy-deep); margin-bottom:4px;}
   .modal .modal-sub{color:var(--slate); font-size:13px; margin-bottom:18px;}
-  .form-grid{
+  .form-row{
     display:grid;
     grid-template-columns:1fr 1fr;
-    gap:14px 16px;
+    gap:12px 16px;
+    align-items:start;
+    padding:12px 14px;
+    border-radius:var(--radius-sm);
+    margin-bottom:8px;
   }
-  .field{display:flex; flex-direction:column; gap:5px;}
+  .form-row.band-a{background:#eef1f4;}
+  .form-row.band-b{background:#ffffff; border:1px solid var(--line);}
+  @media(max-width:560px){
+    .form-row{grid-template-columns:1fr;}
+  }
+  .field{display:flex; flex-direction:column; gap:5px; min-width:0;}
   .field.span2{grid-column:1 / -1;}
   .field label{font-size:12.5px; color:var(--slate); font-weight:500;}
   .field input, .field select{
+    width:100%;
     padding:9px 11px;
     border:1px solid var(--line);
     border-radius:var(--radius-sm);
@@ -488,8 +657,9 @@
     background:var(--navy-deep);
     color:#fff;
     padding:11px 20px;
-    border-radius:var(--radius-sm);
+    border-radius:999px;
     font-size:13.5px;
+    box-shadow:var(--shadow-lg);
     opacity:0;
     transition:opacity .2s, transform .2s;
     pointer-events:none;
@@ -498,7 +668,8 @@
   .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
   .confirm-box{
     background:var(--paper-raised);
-    border-radius:var(--radius-md);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-lg);
     width:100%;
     max-width:380px;
     padding:24px 26px;
@@ -534,17 +705,24 @@
   .link-btn{
     background:none;
     border:none;
-    color:var(--navy-deep);
+    color:#eaf0f6;
     font-family:inherit;
     font-size:12.5px;
+    font-weight:600;
     text-decoration:underline;
     cursor:pointer;
     padding:0;
   }
+  .link-btn:hover{color:#fff;}
 
   @media(max-width:720px){
+    .masthead{padding:14px 16px;}
+    .masthead h1{font-size:19px;}
+    .masthead p{font-size:12px;}
+    .masthead-right{text-align:left; width:100%;}
+    .auth-bar{justify-content:flex-start; flex-wrap:wrap;}
     .stats{grid-template-columns:repeat(2,1fr);}
-    .form-grid{grid-template-columns:1fr;}
+    .form-row{grid-template-columns:1fr;}
     table{font-size:12.5px;}
     thead{display:none;}
     tbody tr{display:block; border-bottom:8px solid var(--paper);}
@@ -555,11 +733,84 @@
 </head>
 <body>
 
-<div class="wrap">
+<div id="publicRegisterPage" style="display:none; max-width:560px; margin:0 auto; padding:30px 18px 60px;">
+  <div style="text-align:center; margin-bottom:22px;">
+    <div class="brand-mark" style="margin:0 auto 10px;">TP</div>
+    <h1 style="font-size:21px; color:var(--navy-deep); margin-bottom:4px;">TCS प्लेसमेंट — अपना रिकॉर्ड भरें</h1>
+    <p style="color:var(--slate); font-size:13.5px;">Register your placement details / आगे चलकर यह जानकारी अपडेट होती रहेगी।</p>
+  </div>
+  <div class="modal" style="max-width:560px; margin:0 auto;">
+    <div id="publicRegisterFormWrap">
+      <div class="form-row band-a">
+        <div class="field span2">
+          <label>छात्र का नाम / Student name *</label>
+          <input type="text" id="pr_name" placeholder="पूरा नाम / Full name">
+        </div>
+      </div>
+      <div class="form-row band-b">
+        <div class="field">
+          <label>Reference ID (TCS) — अगर हो तो</label>
+          <input type="text" id="pr_refId" placeholder="DT2024...">
+        </div>
+        <div class="field">
+          <label>Track / ट्रैक</label>
+          <select id="pr_track">
+            <option value="IT">IT (Ignite / Smart)</option>
+            <option value="Management">Management (BPS)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row band-a">
+        <div class="field">
+          <label>University / यूनिवर्सिटी</label>
+          <input type="text" id="pr_university" placeholder="MGKVP / VBSPU">
+        </div>
+        <div class="field">
+          <label>Batch / बैच (जैसे 2023-2026)</label>
+          <input type="text" id="pr_batch" placeholder="2023-2026">
+        </div>
+      </div>
+      <div class="form-row band-b">
+        <div class="field">
+          <label>Course / कोर्स</label>
+          <input type="text" id="pr_course" placeholder="BBA / B.Com / BCA">
+        </div>
+        <div class="field">
+          <label>University Roll No / यूनिवर्सिटी रोल नंबर</label>
+          <input type="text" id="pr_roll" placeholder="जैसे 19724407036">
+          <div style="font-size:11.5px; color:var(--slate); margin-top:2px;">यह वही रोल नंबर है जो आपकी यूनिवर्सिटी (MGKVP / VBSPU) ने आपको दिया है — कॉलेज एडमिशन या एग्जाम फॉर्म पर लिखा होता है।<br>This is the Roll/Enrollment No issued by your university (MGKVP / VBSPU) — found on your admission or exam form.</div>
+        </div>
+      </div>
+      <div class="form-row band-a">
+        <div class="field">
+          <label>Mobile नंबर / Mobile number</label>
+          <input type="text" id="pr_mobile" placeholder="10 अंक">
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="text" id="pr_email" placeholder="you@example.com">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="pr_submitBtn" style="width:100%; justify-content:center;">सबमिट करें / Submit</button>
+      </div>
+    </div>
+    <div id="publicRegisterSuccess" style="display:none; text-align:center; padding:20px 0;">
+      <h2 style="font-size:19px; color:var(--leaf); margin-bottom:8px;">धन्यवाद! / Thank you!</h2>
+      <p style="color:var(--slate); font-size:14px; margin-bottom:18px;">आपका रिकॉर्ड जमा हो गया है, placement coordinator इसे जल्द ही जोड़ देंगे।<br>Your details were submitted — the placement coordinator will add them shortly.</p>
+      <button class="btn btn-ghost" id="pr_submitAnotherBtn">एक और भरें / Submit another</button>
+    </div>
+  </div>
+</div>
+
+<div class="topbar" id="appTopbar">
   <div class="masthead">
-    <div>
-      <h1>TCS प्लेसमेंट ट्रैकर <span style="font-size:17px; color:var(--slate); font-weight:400;">/ TCS Placement Tracker</span></h1>
-      <p>बैच वाइज छात्रों का रिकॉर्ड — कौन सेलेक्ट हुआ, कौन वेटिंग में है, कौन इंटरव्यू के इंतज़ार में।<br>Batch-wise student record — who got selected, who's waiting, who's pending interview. Admin can add, edit or delete here.</p>
+    <div class="brand-row">
+      <div class="brand-mark">TP</div>
+      <div>
+        <h1>TCS प्लेसमेंट ट्रैकर <span style="font-size:15px; font-weight:400;">/ TCS Placement Tracker</span></h1>
+        <p>बैच वाइज छात्रों का रिकॉर्ड — कौन सेलेक्ट हुआ, कौन वेटिंग में है, कौन इंटरव्यू के इंतज़ार में।<br>Batch-wise student record — who got selected, who's waiting, who's pending interview. Admin can add, edit or delete here.</p>
+      </div>
     </div>
     <div class="masthead-right">
       <div class="count" id="totalHeadCount">0</div>
@@ -572,6 +823,10 @@
       </div>
     </div>
   </div>
+</div>
+
+<div class="wrap" id="appWrap">
+  <div id="pendingSubmissionsPanel"></div>
 
   <div class="section-eyebrow">आँकड़े और विश्लेषण / Analytics overview</div>
   <div class="scope-note" id="scopeNote">दिखाया जा रहा है / Showing: सभी बैच / All batches</div>
@@ -584,6 +839,12 @@
     <div class="stat selected"><div class="num" id="statSelected">0</div><div class="lbl">सेलेक्ट हुए / Selected</div><div class="split" id="statSelectedSplit"></div></div>
     <div class="stat waiting"><div class="num" id="statWaiting">0</div><div class="lbl">वेटिंग में / Waiting</div><div class="split" id="statWaitingSplit"></div></div>
     <div class="stat fail"><div class="num" id="statFail">0</div><div class="lbl">फेल (लिखित) / Not qualified</div><div class="split" id="statFailSplit"></div></div>
+  </div>
+
+  <div class="funnel-card">
+    <h3>लिखित → इंटरव्यू → फाइनल सेलेक्ट / Written → Interview → Final Select</h3>
+    <div class="funnel-note">कुल कितने छात्र लिखित परीक्षा पास कर पाए, उनमें से कितने इंटरव्यू पास करके सेलेक्शन पाइपलाइन में पहुंचे, और आख़िर में कितने फाइनल सेलेक्ट हुए। / How many cleared the written exam, how many of them cleared the interview into the selection pipeline, and how many are finally selected.</div>
+    <div class="rate-cards cols3" id="placementSummaryHost"></div>
   </div>
 
   <div class="funnel-card">
@@ -605,6 +866,31 @@
     </div>
   </div>
 
+  <div class="section-eyebrow">ऑडिट और ट्रेंड / Audit &amp; trend</div>
+  <div class="track-row" id="trackRowAudit" style="margin-bottom:16px;"></div>
+
+  <div class="funnel-card">
+    <h3>ऑडिट रिपोर्ट — बैच वाइज / Audit report — batch-wise</h3>
+    <div class="funnel-note" id="auditScopeNote">हर बैच में कितने ऑनगोइंग, अनुपस्थित, लिखित/इंटरव्यू में फेल-पास हुए और फाइनल सेलेक्ट हुए — पूरा हिसाब एक नज़र में। / Full breakdown per batch — ongoing, absent, written/interview pass-fail and final selects — for a quick audit.</div>
+    <div class="track-row" id="trackRowAuditReport" style="margin-bottom:14px;"></div>
+    <div id="auditControlsHost"></div>
+    <div id="auditReportHost"></div>
+  </div>
+
+  <div class="funnel-card">
+    <h3>ट्रेंड — बैच दर बैच / Trend across batches</h3>
+    <div class="funnel-note" id="trendScopeNote">हर बैच में लिखित परीक्षा पास % और फाइनल सेलेक्ट % — अलग-अलग या साथ में देखें। / Written exam pass % and final select % per batch — view separately or together.</div>
+    <div class="trend-toggle-row" id="trendToggleRow">
+      <button class="trend-toggle-btn active" data-series="written">
+        <i style="background:#c07d2b;"></i>लिखित परीक्षा पास % / Written exam pass %
+      </button>
+      <button class="trend-toggle-btn active" data-series="selected">
+        <i style="background:#3f7d58;"></i>फाइनल सेलेक्ट % / Final select %
+      </button>
+    </div>
+    <div id="trendChartHost"></div>
+  </div>
+
   <div class="batch-manage admin-only" id="batchManagePanel">
     <h4>बैच प्रबंधन (सिर्फ़ एडमिन) / Manage batches (admin only)</h4>
     <div id="batchManageHost"></div>
@@ -616,6 +902,9 @@
   <div class="batch-row" id="batchRow"></div>
 
   <div id="batchNoteBanner"></div>
+
+  <div class="funnel-note" id="statusFilterNote" style="margin-bottom:8px;">Status पर क्लिक करें — सिर्फ़ उसी status वाले students नीचे दिखेंगे, PDF भी सिर्फ़ उन्हीं का बनेगा। / Click a status — only matching students show below, and the PDF covers just them.</div>
+  <div class="status-chip-row" id="statusFilterRow"></div>
 
   <div class="toolbar">
     <div class="search-box">
@@ -642,11 +931,13 @@
     <h2 id="formTitle">नया छात्र जोड़ें / Add student</h2>
     <div class="modal-sub" id="formSub">सभी विवरण भरें — जो जानकारी अभी नहीं है उसे खाली छोड़ सकते हैं। / Fill in what you can — leave unknown fields blank.</div>
     <form id="studentForm">
-      <div class="form-grid">
+      <div class="form-row band-a">
         <div class="field span2">
           <label>छात्र का नाम / Student name *</label>
           <input type="text" id="f_name" required>
         </div>
+      </div>
+      <div class="form-row band-b">
         <div class="field">
           <label>Reference ID (TCS)</label>
           <input type="text" id="f_refId">
@@ -658,6 +949,8 @@
             <option value="Management">Management (BPS)</option>
           </select>
         </div>
+      </div>
+      <div class="form-row band-a">
         <div class="field">
           <label>University / यूनिवर्सिटी</label>
           <input type="text" id="f_university" list="universityList">
@@ -671,14 +964,19 @@
           <input type="text" id="f_batch" placeholder="2023-2026" list="batchDataList">
           <datalist id="batchDataList"></datalist>
         </div>
+      </div>
+      <div class="form-row band-b">
         <div class="field">
           <label>Interview स्थिति / Interview status</label>
           <input type="text" id="f_interview" placeholder="Done / Interview Date.. / Fail in Written Exam">
         </div>
         <div class="field">
-          <label>Roll / Enrollment No / रोल नंबर</label>
+          <label>University Roll No / यूनिवर्सिटी रोल नंबर</label>
           <input type="text" id="f_roll">
+          <div style="font-size:11.5px; color:var(--slate); margin-top:2px;">छात्र की यूनिवर्सिटी (MGKVP / VBSPU) द्वारा जारी रोल/एनरोलमेंट नंबर — admission या exam form पर लिखा होता है।<br>Roll/Enrollment No issued by the student's university (MGKVP / VBSPU) — found on their admission or exam form.</div>
         </div>
+      </div>
+      <div class="form-row band-a">
         <div class="field">
           <label>Post / पद</label>
           <input type="text" id="f_post" list="postList">
@@ -700,6 +998,8 @@
             <option value="B.Sc">
           </datalist>
         </div>
+      </div>
+      <div class="form-row band-b">
         <div class="field">
           <label>Email</label>
           <input type="email" id="f_email">
@@ -708,10 +1008,13 @@
           <label>Mobile नंबर / Mobile number</label>
           <input type="text" id="f_mobile">
         </div>
+      </div>
+      <div class="form-row band-a">
         <div class="field">
           <label>Status / स्थिति</label>
           <select id="f_status">
             <option value="Form Filled">Form Filled (फॉर्म भरा — जारी / Ongoing)</option>
+            <option value="Written exam done - Waiting for result">Written exam done - Waiting for result (रिजल्ट पेंडिंग)</option>
             <option value="Written Qualify">Written Qualify (इंटरव्यू पेंडिंग / interview pending)</option>
             <option value="Joining Letter Received">Joining Letter Received (सेलेक्ट)</option>
             <option value="Offer letter received">Offer letter received (सेलेक्ट)</option>
@@ -721,7 +1024,7 @@
             <option value="No Confirmation Mail">No Confirmation Mail (वेटिंग / waiting)</option>
             <option value="Interview Done - Not Selected">Interview Done - Not Selected (इंटरव्यू हुआ, सेलेक्ट नहीं हुआ)</option>
             <option value="Absent in written Exam">Absent in written Exam (अनुपस्थित)</option>
-            <option value="No">No (क्वालीफाई नहीं / not qualified)</option>
+            <option value="No">Written Not Qualify (लिखित में क्वालीफाई नहीं)</option>
             <option value="Others">Others (अन्य — खुद लिखें / type your own)</option>
           </select>
         </div>
@@ -729,6 +1032,8 @@
           <label>Status लिखें / Type the status</label>
           <input type="text" id="f_statusOther" placeholder="जो भी runtime status हो वो यहाँ लिखें / type any status here">
         </div>
+      </div>
+      <div class="form-row band-b">
         <div class="field span2">
           <label>Remark / टिप्पणी</label>
           <input type="text" id="f_remark">
@@ -781,9 +1086,30 @@
   </div>
 </div>
 
+<div class="overlay" id="downloadOptionsOverlay">
+  <div class="confirm-box" style="max-width:420px; text-align:left;">
+    <h2 style="font-size:18px; text-align:center;">डाउनलोड में क्या चाहिए? / What do you want in the download?</h2>
+    <p style="text-align:center;">डिफ़ॉल्ट में सिर्फ़ All batches — ज़रूरत हो तो IT, Management, Graph भी जोड़ सकते हैं।<br>By default only All batches — add IT, Management or the Graph if you need them.</p>
+    <div class="audit-controls" style="text-align:left; margin-bottom:0;">
+      <div class="audit-check-row" id="downloadOptionScopes">
+        <label><input type="checkbox" id="dlOpt_all" checked> All batches (combined)</label>
+        <label><input type="checkbox" id="dlOpt_IT"> IT (Ignite/Smart)</label>
+        <label><input type="checkbox" id="dlOpt_Management"> Management (BPS)</label>
+      </div>
+      <div class="audit-check-row">
+        <label><input type="checkbox" id="dlOpt_graph"> Trend graph / ट्रेंड ग्राफ़</label>
+      </div>
+    </div>
+    <div class="confirm-actions" style="margin-top:18px;">
+      <button class="btn btn-ghost" id="downloadOptionsCancel">रद्द करें / Cancel</button>
+      <button class="btn btn-primary" id="downloadOptionsConfirm">⬇ डाउनलोड करें / Download</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBhDjyI5hddzrprNiZq9drJNgfE9mDYMaM",
@@ -799,6 +1125,7 @@ const fbApp = initializeApp(firebaseConfig);
 const db = getFirestore(fbApp);
 const studentsDocRef = doc(db, 'tcsTracker', 'students');
 const metaDocRef = doc(db, 'tcsTracker', 'meta');
+const pendingCollRef = collection(db, 'pendingSubmissions'); // students khud apna form bharte hain, yahan jama hota hai jab tak admin approve na kare
 const DEFAULT_BATCHES = [
   {name:'2021-2024', status:'completed', note:''},
   {name:'2022-2025', status:'completed', note:''},
@@ -814,16 +1141,26 @@ const WAITING_STATUSES = ['No Confirmation Mail'];
 const ABSENT_STATUSES = ['Absent in written Exam'];
 const FAIL_STATUSES = ['No', 'Interview Done - Not Selected'];
 const PROCESS_STATUSES = ['Written Qualify'];
-const KNOWN_STATUS_VALUES = ['Form Filled','Written Qualify','Joining Letter Received','Offer letter received','Documents Uploaded','Batched','Joined','No Confirmation Mail','Interview Done - Not Selected','Absent in written Exam','No'];
+const RESULT_PENDING_STATUSES = ['Written exam done - Waiting for result'];
+const KNOWN_STATUS_VALUES = ['Form Filled','Written exam done - Waiting for result','Written Qualify','Joining Letter Received','Offer letter received','Documents Uploaded','Batched','Joined','No Confirmation Mail','Interview Done - Not Selected','Absent in written Exam','No'];
 
 let students = [];
 let activeBatch = 'all';
 let activeTrack = 'all';
+let activeStatusFilter = 'all'; // ek-click status browsing: student list + PDF/CSV sirf is status tak simit ho jaate hain
 let searchTerm = '';
 let editingId = null;
 let deletingId = null;
 let isAdmin = false;
 let knownBatches = [];
+// Admin decide karta hai report me kaunse scope dikhe (All/IT/Management) aur PDF me graph bhi shamil ho ya sirf table.
+// Default sirf "All tracks (combined)" — IT/Management chahiye to admin checkbox se on karega.
+let auditScopeVisible = { all: true, IT: false, Management: false };
+let auditIncludeGraphInPdf = false;
+let pendingSubmissions = []; // students ke apne-se bhare hue forms, jab tak admin approve na kare
+let pendingPanelOpen = false; // alag button se box khulta/band hota hai
+let editingPendingId = null; // jis submission ko admin abhi edit kar raha hai, uski id
+let pendingEditDraft = {}; // edit mode ke temporary field values
 let currentAdminPassword = 'tcs2026';
 // एडमिन पासवर्ड अब Firestore में सेव है, ऐप से ही बदला जा सकता है / Admin password now lives in Firestore, changeable from within the app
 
@@ -854,12 +1191,47 @@ function statusCategory(status){
   if (WAITING_STATUSES.includes(status)) return 'waiting';
   if (ABSENT_STATUSES.includes(status)) return 'absent';
   if (FAIL_STATUSES.includes(status)) return 'fail';
+  if (RESULT_PENDING_STATUSES.includes(status)) return 'resultPending';
   if (PROCESS_STATUSES.includes(status)) return 'process';
   return 'process';
 }
 
+// Har count explicit status-match se nikalta hai, kisi ko bhi subtraction se "maana" nahi jaata —
+// isliye koi bhi custom/"Others" status apne-aap "interview pass" me nahi aa sakta. Jo status kisi
+// bhi jaani-pehchani list me nahi aata, wo 'other' me jaata hai taaki data-entry galti saaf dikhe.
+function classifyList(list){
+  const total = list.length;
+  const ongoing = list.filter(s => ONGOING_STATUSES.includes(s.status)).length;
+  const absent = list.filter(s => ABSENT_STATUSES.includes(s.status)).length;
+  const resultPending = list.filter(s => RESULT_PENDING_STATUSES.includes(s.status)).length;
+  const writtenFail = list.filter(s => s.status === 'No').length;
+  const pendingInterview = list.filter(s => s.status === 'Written Qualify').length;
+  const interviewFail = list.filter(s => s.status === 'Interview Done - Not Selected').length;
+  const waiting = list.filter(s => WAITING_STATUSES.includes(s.status)).length;
+  const selected = list.filter(s => SELECTED_STATUSES.includes(s.status)).length;
+  const other = total - ongoing - absent - resultPending - writtenFail - pendingInterview - interviewFail - waiting - selected;
+
+  const examGiven = total - ongoing - absent;
+  const writtenPass = examGiven - writtenFail - resultPending; // = pendingInterview + interviewFail + waiting + selected + other
+  // Interview-pass sirf un students ka jo explicitly "waiting confirmation" ya "selected" hain —
+  // koi anjaana/custom status yahan khud-ba-khud nahi gina jaata.
+  const interviewPass = waiting + selected;
+  const interviewAttended = interviewFail + interviewPass; // jisne interview diya — pass ya fail dono
+  const finalSelect = selected;
+
+  return { total, ongoing, absent, resultPending, writtenFail, pendingInterview, interviewFail, waiting, selected, other, examGiven, writtenPass, interviewPass, interviewAttended, finalSelect };
+}
+
 function statusLabel(status){
   return status && status.trim() ? status : '—';
+}
+
+// Stored value hamesha 'No' hi rahega (Firestore, filtering, audit sab isi se match karte hain) —
+// sirf dikhane ke liye ise zyada professional wording me badal dete hain.
+const STATUS_DISPLAY_OVERRIDES = { 'No': 'Written Not Qualify' };
+function statusDisplayLabel(status){
+  const lbl = statusLabel(status);
+  return STATUS_DISPLAY_OVERRIDES[lbl] || lbl;
 }
 
 async function loadStudents(){
@@ -886,6 +1258,16 @@ async function loadStudents(){
     console.error('Firestore snapshot error', err);
     document.getElementById('tableHost').innerHTML =
       '<div class="loading-note">कनेक्शन में समस्या हुई — Firestore rules चेक करें / Connection issue — check Firestore security rules.</div>';
+  });
+}
+
+function loadPendingSubmissions(){
+  onSnapshot(pendingCollRef, (snap) => {
+    pendingSubmissions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    pendingSubmissions.sort((a,b) => (a.submittedAt||0) - (b.submittedAt||0));
+    renderPendingSubmissionsPanel();
+  }, (err) => {
+    console.error('Pending submissions snapshot error', err);
   });
 }
 
@@ -1023,6 +1405,9 @@ function filteredStudents(){
   if (activeTrack !== 'all'){
     list = list.filter(s => (s.track || 'IT') === activeTrack);
   }
+  if (activeStatusFilter !== 'all'){
+    list = list.filter(s => statusLabel(s.status) === activeStatusFilter);
+  }
   if (searchTerm.trim()){
     const q = searchTerm.trim().toLowerCase();
     list = list.filter(s =>
@@ -1036,18 +1421,65 @@ function filteredStudents(){
 }
 
 function renderTrackRow(){
-  const host = document.getElementById('trackRow');
+  // Yahi track pills do jagah render hote hain — student-records section aur Audit & trend section —
+  // dono ek hi activeTrack ko control karte hain, isliye hamesha sync me rahenge.
+  const hostIds = ['trackRow', 'trackRowAudit', 'trackRowAuditReport'];
   const tracks = [
     {val:'all', label:'सभी ट्रैक / All tracks'},
     {val:'IT', label:'IT (Ignite/Smart)'},
     {val:'Management', label:'Management (BPS)'}
   ];
-  host.innerHTML = tracks.map(t =>
-    `<div class="track-pill ${activeTrack===t.val?'active':''}" data-track="${t.val}">${escapeHtml(t.label)}</div>`
-  ).join('');
-  host.querySelectorAll('.track-pill').forEach(el => {
+  hostIds.forEach(hostId => {
+    const host = document.getElementById(hostId);
+    if (!host) return;
+    host.innerHTML = tracks.map(t =>
+      `<div class="track-pill ${activeTrack===t.val?'active':''}" data-track="${t.val}">${escapeHtml(t.label)}</div>`
+    ).join('');
+    host.querySelectorAll('.track-pill').forEach(el => {
+      el.addEventListener('click', () => {
+        activeTrack = el.getAttribute('data-track');
+        // Audit report me bhi wahi scope turant dikhe jo yahan click kiya — checkbox panel ko
+        // isi selection se sync kar dete hain (single scope select), taaki table turant badal jaaye.
+        auditScopeVisible = { all: activeTrack === 'all', IT: activeTrack === 'IT', Management: activeTrack === 'Management' };
+        render();
+      });
+    });
+  });
+}
+
+function renderStatusFilterRow(){
+  const host = document.getElementById('statusFilterRow');
+  if (!host) return;
+
+  // Batch/track scope ke andar jo bhi statuses abhi records me maujood hain, unki ginti —
+  // taaki chip par wahi number dikhe jo click karne par table me aayega.
+  const scoped = scopedStudents();
+  const counts = {};
+  scoped.forEach(s => {
+    const key = statusLabel(s.status);
+    counts[key] = (counts[key] || 0) + 1;
+  });
+
+  // Batch/track badalne par agar pehle se selected status is scope me mile hi na, to apne aap "All" reset ho jaaye
+  // taaki table khaali na reh jaaye.
+  if (activeStatusFilter !== 'all' && !counts[activeStatusFilter]){
+    activeStatusFilter = 'all';
+  }
+
+  // Jaani-pehchani statuses pehle, unke apne fixed order me; phir koi bhi custom/"Others" status jo mila ho.
+  const orderedKnown = KNOWN_STATUS_VALUES.filter(st => counts[st] > 0);
+  const extra = Object.keys(counts).filter(st => !KNOWN_STATUS_VALUES.includes(st)).sort((a,b) => counts[b]-counts[a]);
+  const statusesToShow = [...orderedKnown, ...extra];
+
+  const chips = [
+    `<div class="status-chip ${activeStatusFilter==='all'?'active':''}" data-status="all">सभी स्टेटस / All statuses <span class="chip-count">${scoped.length}</span></div>`,
+    ...statusesToShow.map(st => `<div class="status-chip ${activeStatusFilter===st?'active':''}" data-status="${escapeHtml(st)}">${escapeHtml(statusDisplayLabel(st))} <span class="chip-count">${counts[st]}</span></div>`)
+  ];
+
+  host.innerHTML = chips.join('');
+  host.querySelectorAll('.status-chip').forEach(el => {
     el.addEventListener('click', () => {
-      activeTrack = el.getAttribute('data-track');
+      activeStatusFilter = el.getAttribute('data-status');
       render();
     });
   });
@@ -1132,6 +1564,180 @@ function renderBatchRow(){
   const dataList = document.getElementById('batchDataList');
   if (dataList){
     dataList.innerHTML = getBatches().map(b => `<option value="${escapeAttr(b)}">`).join('');
+  }
+}
+
+function publicRegisterLink(){
+  const url = new URL(window.location.href);
+  url.search = '';
+  url.hash = '';
+  url.searchParams.set('register', '1');
+  return url.toString();
+}
+
+function renderPendingSubmissionsPanel(){
+  const host = document.getElementById('pendingSubmissionsPanel');
+  if (!host) return;
+  if (!isAdmin){
+    host.innerHTML = '';
+    return;
+  }
+
+  const count = pendingSubmissions.length;
+  const toggleBtn = `
+    <button class="btn ${count>0 ? 'btn-primary' : 'btn-ghost'} btn-small" id="pendingToggleBtn" style="margin-bottom:${pendingPanelOpen?'8px':'0'};">
+      🔔 नए रजिस्ट्रेशन / New registrations${count>0 ? ` (${count})` : ''} ${pendingPanelOpen ? '▲' : '▼'}
+    </button>`;
+
+  if (!pendingPanelOpen){
+    host.innerHTML = `<div class="pending-panel-collapsed">${toggleBtn}</div>`;
+    document.getElementById('pendingToggleBtn').addEventListener('click', () => {
+      pendingPanelOpen = true;
+      renderPendingSubmissionsPanel();
+    });
+    return;
+  }
+
+  const linkBox = `
+    <div class="pending-link-box">
+      <input type="text" id="pendingShareLink" value="${escapeAttr(publicRegisterLink())}" readonly>
+      <button class="btn btn-ghost btn-small" id="pendingCopyLinkBtn">📋 लिंक कॉपी / Copy link</button>
+    </div>`;
+
+  let bodyHtml;
+  if (count === 0){
+    bodyHtml = `
+      <div class="funnel-note" style="margin:0 0 4px;">यह लिंक students को भेजें — वो अपना फॉर्म खुद भर देंगे, फिर यहाँ verify करके आगे record में जोड़ सकते हैं। / Share this link with students — they fill their own form, and it appears here for you to verify and add to the main record.</div>
+      ${linkBox}
+      <div style="font-size:12.5px; color:var(--slate); margin-top:6px;">अभी कोई नया सबमिशन नहीं / No new submissions yet</div>`;
+  } else {
+    const rows = pendingSubmissions.map(p => {
+      if (editingPendingId === p.id){
+        const d = pendingEditDraft;
+        return `
+        <div class="pending-row pending-row-editing">
+          <div class="pending-edit-grid">
+            <input type="text" class="pending-edit-input" data-f="name" placeholder="Name" value="${escapeAttr(d.name||'')}">
+            <input type="text" class="pending-edit-input" data-f="refId" placeholder="Reference ID" value="${escapeAttr(d.refId||'')}">
+            <select class="pending-edit-input" data-f="track">
+              <option value="IT" ${d.track==='IT'?'selected':''}>IT</option>
+              <option value="Management" ${d.track==='Management'?'selected':''}>Management</option>
+            </select>
+            <input type="text" class="pending-edit-input" data-f="university" placeholder="University" value="${escapeAttr(d.university||'')}">
+            <input type="text" class="pending-edit-input" data-f="batch" placeholder="Batch (2023-2026)" value="${escapeAttr(d.batch||'')}">
+            <input type="text" class="pending-edit-input" data-f="course" placeholder="Course" value="${escapeAttr(d.course||'')}">
+            <input type="text" class="pending-edit-input" data-f="roll" placeholder="University Roll No" value="${escapeAttr(d.roll||'')}">
+            <input type="text" class="pending-edit-input" data-f="mobile" placeholder="Mobile" value="${escapeAttr(d.mobile||'')}">
+            <input type="text" class="pending-edit-input" data-f="email" placeholder="Email" value="${escapeAttr(d.email||'')}">
+          </div>
+          <div class="prow-actions">
+            <button class="pending-approve-btn" data-id="${p.id}">✅ Save & Add / सेव करके जोड़ें</button>
+            <button class="pending-reject-btn" data-id="${p.id}" data-cancel="1">रद्द करें / Cancel</button>
+          </div>
+        </div>`;
+      }
+      return `
+      <div class="pending-row">
+        <span class="pname">${escapeHtml(p.name || 'अज्ञात / Unknown')}</span>
+        <span class="pmeta">${escapeHtml(p.batch || '—')} · ${escapeHtml(p.track || 'IT')} · ${escapeHtml(p.university || '—')} · रोल: ${escapeHtml(p.roll || '—')} · ${escapeHtml(p.mobile || '—')}</span>
+        <div class="prow-actions">
+          <button class="pending-approve-btn" data-id="${p.id}">✅ Verify & जोड़ें / Add</button>
+          <button class="pending-edit-btn" data-id="${p.id}">✏️ Edit</button>
+          <button class="pending-reject-btn" data-id="${p.id}">✕ हटाएं / Reject</button>
+        </div>
+      </div>`;
+    }).join('');
+    bodyHtml = `
+      <div class="funnel-note" style="margin:0 0 4px;">Students ने खुद अपना फॉर्म भरा है — गलत एंट्री को ✏️ Edit से ठीक करें, फिर "Add" दबाएँ तो record नीचे की लिस्ट में जुड़ जाएगा। / Students filled these themselves — fix mistakes with ✏️ Edit, then press "Add" to bring them into the main list.</div>
+      ${linkBox}
+      ${rows}`;
+  }
+
+  host.innerHTML = `<div class="pending-panel">${toggleBtn}${bodyHtml}</div>`;
+
+  document.getElementById('pendingToggleBtn').addEventListener('click', () => {
+    pendingPanelOpen = false;
+    editingPendingId = null;
+    renderPendingSubmissionsPanel();
+  });
+  const copyBtn = document.getElementById('pendingCopyLinkBtn');
+  if (copyBtn){
+    copyBtn.addEventListener('click', () => {
+      const input = document.getElementById('pendingShareLink');
+      input.select();
+      navigator.clipboard?.writeText(input.value).then(() => {
+        showToast('लिंक कॉपी हो गया / Link copied');
+      }).catch(() => {
+        document.execCommand('copy');
+        showToast('लिंक कॉपी हो गया / Link copied');
+      });
+    });
+  }
+  host.querySelectorAll('.pending-edit-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-id');
+      const p = pendingSubmissions.find(x => x.id === id);
+      if (!p) return;
+      editingPendingId = id;
+      pendingEditDraft = { name:p.name||'', refId:p.refId||'', track:p.track||'IT', university:p.university||'', batch:p.batch||'', course:p.course||'', roll:p.roll||'', mobile:p.mobile||'', email:p.email||'' };
+      renderPendingSubmissionsPanel();
+    });
+  });
+  host.querySelectorAll('.pending-edit-input').forEach(inp => {
+    inp.addEventListener('input', () => { pendingEditDraft[inp.getAttribute('data-f')] = inp.value.trim(); });
+    inp.addEventListener('change', () => { pendingEditDraft[inp.getAttribute('data-f')] = inp.value.trim(); });
+  });
+  host.querySelectorAll('.pending-approve-btn').forEach(btn => {
+    btn.addEventListener('click', () => approvePendingSubmission(btn.getAttribute('data-id')));
+  });
+  host.querySelectorAll('.pending-reject-btn').forEach(btn => {
+    if (btn.getAttribute('data-cancel') === '1'){
+      btn.addEventListener('click', () => { editingPendingId = null; renderPendingSubmissionsPanel(); });
+    } else {
+      btn.addEventListener('click', () => rejectPendingSubmission(btn.getAttribute('data-id')));
+    }
+  });
+}
+
+async function approvePendingSubmission(id){
+  const p = pendingSubmissions.find(x => x.id === id);
+  if (!p) return;
+  const edited = (editingPendingId === id) ? pendingEditDraft : null;
+  const src = edited || p;
+  const newStudent = {
+    id: uid(),
+    name: src.name || '',
+    refId: src.refId || '',
+    track: src.track || 'IT',
+    course: src.course || '',
+    university: src.university || '',
+    batch: src.batch || '',
+    interview: '',
+    roll: src.roll || '',
+    email: src.email || '',
+    mobile: src.mobile || '',
+    status: 'Form Filled',
+    post: '',
+    remark: 'Student self-registration se joda gaya / Added from student self-registration'
+  };
+  try{
+    await setDoc(studentsDocRef, { list: [...students, newStudent] });
+    await deleteDoc(doc(db, 'pendingSubmissions', id));
+    editingPendingId = null;
+    showToast('रिकॉर्ड जोड़ दिया गया / Record added');
+  } catch(e){
+    console.error('Approve pending failed', e);
+    showToast('कुछ गलत हो गया, दोबारा कोशिश करें / Something went wrong, please retry');
+  }
+}
+
+async function rejectPendingSubmission(id){
+  try{
+    await deleteDoc(doc(db, 'pendingSubmissions', id));
+    showToast('सबमिशन हटा दिया / Submission removed');
+  } catch(e){
+    console.error('Reject pending failed', e);
+    showToast('कुछ गलत हो गया, दोबारा कोशिश करें / Something went wrong, please retry');
   }
 }
 
@@ -1224,7 +1830,7 @@ function exportCSV(){
     const email = isAdmin ? (s.email || '') : maskEmail(s.email);
     return [
       s.name, s.refId, s.track || 'IT', s.course || '', s.university, s.batch,
-      s.interview, s.post, mobile, email, s.status, s.remark
+      s.interview, s.post, mobile, email, s.status ? statusDisplayLabel(s.status) : '', s.remark
     ].map(csvEscape).join(',');
   });
   const csv = [headers.join(','), ...rows].join('\n');
@@ -1246,6 +1852,9 @@ function batchStudentsForExport(batchName){
   if (activeTrack !== 'all'){
     list = list.filter(s => (s.track || 'IT') === activeTrack);
   }
+  if (activeStatusFilter !== 'all'){
+    list = list.filter(s => statusLabel(s.status) === activeStatusFilter);
+  }
   if (searchTerm.trim()){
     const q = searchTerm.trim().toLowerCase();
     list = list.filter(s =>
@@ -1263,6 +1872,56 @@ function exportPDF(){
     showToast('PDF लाइब्रेरी लोड नहीं हुई, दोबारा कोशिश करें / PDF library did not load, please retry');
     return;
   }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+  const marginX = 28;
+  const pageBottom = doc.internal.pageSize.getHeight() - 30;
+  let cursorY = 36;
+
+  // Status se filter active ho to ek flat list (sabhi batches mila ke, status-wise) banti hai —
+  // batch-grouped report sirf tab banta hai jab koi status-filter laga hi na ho.
+  if (activeStatusFilter !== 'all'){
+    const list = filteredStudents().slice().sort((a,b) => (a.name||'').localeCompare(b.name||''));
+    if (list.length === 0){
+      showToast('PDF के लिए कोई रिकॉर्ड नहीं / No records to export');
+      return;
+    }
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(15);
+    doc.text(`TCS Placement Tracker - Status: ${statusDisplayLabel(activeStatusFilter)}`, marginX, cursorY);
+    cursorY += 14;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(90, 100, 110);
+    doc.text(`Generated: ${new Date().toLocaleString('en-IN')} | Scope: ${activeBatch === 'all' ? 'All batches' : activeBatch}${activeTrack !== 'all' ? ' | ' + activeTrack : ''} | Status: ${statusDisplayLabel(activeStatusFilter)} | Count: ${list.length}${searchTerm.trim() ? ' | search: ' + searchTerm.trim() : ''}`, marginX, cursorY);
+    doc.setTextColor(28, 43, 58);
+    cursorY += 16;
+
+    const headers = [['Name','Reference ID','Batch','University','Interview','Roll/Enroll','Post','Mobile','Email','Remark']];
+    const body = list.map(s => {
+      const mobile = isAdmin ? (s.mobile || '') : maskMobile(s.mobile);
+      const email = isAdmin ? (s.email || '') : maskEmail(s.email);
+      return [s.name || '', s.refId || '', s.batch || '', s.university || '', s.interview || '', s.roll || '', s.post || '', mobile || '', email || '', s.remark || ''];
+    });
+    doc.autoTable({
+      head: headers,
+      body,
+      startY: cursorY + 6,
+      margin: { left: marginX, right: marginX },
+      styles: { fontSize: 7.8, cellPadding: 4, overflow: 'linebreak' },
+      headStyles: { fillColor: [34, 64, 95], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [238, 241, 244] },
+      bodyStyles: { fillColor: [255, 255, 255] },
+      theme: 'striped',
+    });
+
+    const statusSlug = activeStatusFilter.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'status';
+    doc.save(`tcs-students-status-${statusSlug}-${new Date().toISOString().slice(0,10)}.pdf`);
+    showToast('PDF डाउनलोड हो गया / PDF downloaded');
+    return;
+  }
+
   const groupNames = activeBatch === 'all' ? getBatches() : [activeBatch];
   const groups = groupNames
     .map(name => ({ name, list: batchStudentsForExport(name) }))
@@ -1272,12 +1931,6 @@ function exportPDF(){
     showToast('PDF के लिए कोई रिकॉर्ड नहीं / No records to export');
     return;
   }
-
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
-  const marginX = 28;
-  const pageBottom = doc.internal.pageSize.getHeight() - 30;
-  let cursorY = 36;
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(15);
@@ -1306,7 +1959,7 @@ function exportPDF(){
     const body = g.list.map(s => {
       const mobile = isAdmin ? (s.mobile || '') : maskMobile(s.mobile);
       const email = isAdmin ? (s.email || '') : maskEmail(s.email);
-      return [s.name || '', s.refId || '', s.university || '', s.interview || '', s.roll || '', s.post || '', mobile || '', email || '', s.status || '', s.remark || ''];
+      return [s.name || '', s.refId || '', s.university || '', s.interview || '', s.roll || '', s.post || '', mobile || '', email || '', s.status ? statusDisplayLabel(s.status) : '', s.remark || ''];
     });
 
     doc.autoTable({
@@ -1352,7 +2005,7 @@ function renderTable(){
       <td data-label="Interview">${escapeHtml(s.interview || '—')}</td>
       <td data-label="Post">${escapeHtml(s.post || '—')}<span class="sub">${escapeHtml(s.track || 'IT')}${s.course ? ' · ' + escapeHtml(s.course) : ''}</span></td>
       <td data-label="संपर्क / Contact">${escapeHtml(mobileDisplay)}<span class="sub">${escapeHtml(emailDisplay)}</span></td>
-      <td data-label="Status"><span class="badge ${cat}">${escapeHtml(statusLabel(s.status))}</span></td>
+      <td data-label="Status"><span class="badge ${cat}">${escapeHtml(statusDisplayLabel(s.status))}</span></td>
       <td data-label="Remark">${escapeHtml(s.remark || '—')}</td>
       <td data-label="">
         <div class="row-actions admin-only">
@@ -1438,6 +2091,7 @@ function renderCharts(){
     const buckets = [
       {label:'Ongoing / जारी', count: scoped.filter(s => statusCategory(s.status) === 'ongoing').length, color: purple},
       {label:'Absent / अनुपस्थित', count: scoped.filter(s => statusCategory(s.status) === 'absent').length, color: slate},
+      {label:'Result pending / रिजल्ट पेंडिंग', count: scoped.filter(s => statusCategory(s.status) === 'resultPending').length, color: '#c07d2b'},
       {label:'In process / इंटरव्यू', count: scoped.filter(s => statusCategory(s.status) === 'process').length, color: navy},
       {label:'Selected / सेलेक्ट', count: scoped.filter(s => statusCategory(s.status) === 'selected').length, color: leaf},
       {label:'Waiting / वेटिंग', count: scoped.filter(s => statusCategory(s.status) === 'waiting').length, color: marigold},
@@ -1482,19 +2136,8 @@ function renderFunnel(){
 
   const scoped = scopedStudents();
   const totalRegistration = scoped.length;
-  const examGiven = scoped.filter(s => {
-    const cat = statusCategory(s.status);
-    return cat !== 'ongoing' && cat !== 'absent';
-  }).length;
-  const interviewQualified = scoped.filter(s => {
-    const cat = statusCategory(s.status);
-    return cat === 'process' || cat === 'waiting' || cat === 'selected';
-  }).length;
-  const interviewAttended = scoped.filter(s => {
-    const cat = statusCategory(s.status);
-    return cat === 'waiting' || cat === 'selected';
-  }).length;
-  const selectedFinal = scoped.filter(s => statusCategory(s.status) === 'selected').length;
+  const c = classifyList(scoped);
+  const { examGiven, writtenFail, resultPending, writtenPass, interviewAttended, finalSelect: selectedFinal } = c;
 
   const noteEl = document.getElementById('funnelScopeNote');
   if (noteEl) noteEl.textContent = 'दिखाया जा रहा है / Showing: ' + scopeLabel();
@@ -1507,7 +2150,7 @@ function renderFunnel(){
   const stages = [
     {label:'कुल रजिस्ट्रेशन / Total registration', value: totalRegistration, color:'#22405f'},
     {label:'लिखित परीक्षा दी / Written exam given', value: examGiven, color:'#c07d2b'},
-    {label:'इंटरव्यू के लिए क्वालीफाई / Qualify for interview', value: interviewQualified, color:'#6b4fa0'},
+    {label:'लिखित परीक्षा पास / Written exam pass', value: writtenPass, color:'#6b4fa0'},
     {label:'सेलेक्ट / ऑफर / जॉइन / Selected / offer / joined', value: selectedFinal, color:'#3f7d58'},
   ];
 
@@ -1519,25 +2162,555 @@ function renderFunnel(){
     </div>`;
   }).join('');
 
-  // Success rates: exam pass rate, interview offer rate
-  const examPassRate = examGiven ? Math.round((interviewQualified / examGiven) * 100) : 0;
+  // Success rates: written exam pass rate, interview -> offer rate
+  const examPassRate = examGiven ? Math.round((writtenPass / examGiven) * 100) : 0;
   const offerRate = interviewAttended ? Math.round((selectedFinal / interviewAttended) * 100) : 0;
 
   const rateHtml = `
     <div class="rate-cards">
       <div class="rate-card">
         <div class="rate-pct">${examPassRate}%</div>
-        <div class="rate-lbl">लिखित परीक्षा पास दर / Exam pass rate</div>
-        <div class="rate-sub">${examGiven} में से ${interviewQualified} पास / ${interviewQualified} of ${examGiven} passed</div>
+        <div class="rate-lbl">लिखित परीक्षा पास दर / Written exam pass rate</div>
+        <div class="rate-sub">${examGiven} में से ${writtenPass} पास / ${writtenPass} of ${examGiven} passed${resultPending ? ' · ' + resultPending + ' रिजल्ट पेंडिंग / result pending' : ''}</div>
       </div>
       <div class="rate-card">
         <div class="rate-pct">${offerRate}%</div>
         <div class="rate-lbl">इंटरव्यू ऑफर दर / Interview → offer rate</div>
-        <div class="rate-sub">${interviewAttended} में से ${selectedFinal} को ऑफर / ${selectedFinal} of ${interviewAttended} got offers</div>
+        <div class="rate-sub">${interviewAttended} में से ${selectedFinal} को ऑफर / ${selectedFinal} of ${interviewAttended} got offers${c.other ? ' · ' + c.other + ' स्टेटस अस्पष्ट / unclassified status' : ''}</div>
       </div>
     </div>`;
 
   host.innerHTML = funnelHtml + rateHtml;
+}
+
+function renderPlacementSummary(){
+  const host = document.getElementById('placementSummaryHost');
+  if (!host) return;
+  const scoped = scopedStudents();
+  const { resultPending, writtenPass, interviewPass, finalSelect, other } = classifyList(scoped);
+
+  host.innerHTML = `
+    <div class="rate-card tone-a">
+      <div class="rate-pct">${writtenPass}</div>
+      <div class="rate-lbl">लिखित परीक्षा पास / Written exam pass</div>
+      <div class="rate-sub">${scoped.length} रजिस्टर्ड में से / out of ${scoped.length} registered${resultPending ? ' · ' + resultPending + ' रिजल्ट पेंडिंग / pending' : ''}</div>
+    </div>
+    <div class="rate-card tone-b">
+      <div class="rate-pct">${interviewPass}</div>
+      <div class="rate-lbl">इंटरव्यू पास / Interview pass</div>
+      <div class="rate-sub">${writtenPass} लिखित पास में से / out of ${writtenPass} written-pass${other ? ' · ' + other + ' अस्पष्ट स्टेटस / unclassified' : ''}</div>
+    </div>
+    <div class="rate-card tone-c">
+      <div class="rate-pct">${finalSelect}</div>
+      <div class="rate-lbl">फाइनल सेलेक्ट / Final select</div>
+      <div class="rate-sub">${interviewPass} इंटरव्यू पास में से / out of ${interviewPass} interview-pass</div>
+    </div>`;
+}
+
+function auditRowsForTrack(trackOverride){
+  const trackFilter = trackOverride !== undefined ? trackOverride : activeTrack;
+  const batches = getBatches();
+  return batches.map(b => {
+    let list = students.filter(s => (s.batch || 'अज्ञात / Unknown') === b);
+    if (trackFilter !== 'all'){
+      list = list.filter(s => (s.track || 'IT') === trackFilter);
+    }
+    const c = classifyList(list);
+    const { total, ongoing, absent, writtenFail, resultPending, examGiven, writtenPass, pendingInterview, interviewFail, interviewPass, other, finalSelect } = c;
+    const selectionRate = total ? Math.round((finalSelect / total) * 100) : 0;
+    const writtenPassRate = total ? Math.round((writtenPass / total) * 100) : 0;
+    // Exam-based rates: only among students who actually sat the written exam (excludes ongoing/absent) —
+    // used by the trend graph so a batch whose exam hasn't happened yet doesn't appear.
+    // Result-pending students count toward examGiven (exam already hua) but not yet toward pass/fail.
+    const writtenPassRateOfExam = examGiven ? Math.round((writtenPass / examGiven) * 100) : 0;
+    const selectionRateOfExam = examGiven ? Math.round((finalSelect / examGiven) * 100) : 0;
+    return { batch: b, total, ongoing, absent, writtenFail, resultPending, writtenPass, examGiven, pendingInterview, interviewFail, interviewPass, other, finalSelect, selectionRate, writtenPassRate, writtenPassRateOfExam, selectionRateOfExam };
+  });
+}
+
+function rateTone(rate){
+  if (rate >= 40) return 'good';
+  if (rate >= 15) return 'mid';
+  return 'low';
+}
+
+// Audit ab teen scope me banta hai: All tracks (combined), IT, Management — taaki
+// teeno ek saath dikh sake, global track-filter pill se independent.
+const AUDIT_SCOPES = [
+  { key: 'all', label: 'सभी ट्रैक (कुल) / All tracks (combined)' },
+  { key: 'IT', label: 'IT (Ignite/Smart)' },
+  { key: 'Management', label: 'Management (BPS)' },
+];
+
+function computeAuditTotals(rows){
+  const totals = rows.reduce((acc, r) => {
+    acc.total += r.total; acc.ongoing += r.ongoing; acc.absent += r.absent;
+    acc.writtenFail += r.writtenFail; acc.resultPending += r.resultPending; acc.writtenPass += r.writtenPass; acc.examGiven += r.examGiven;
+    acc.pendingInterview += r.pendingInterview; acc.interviewFail += r.interviewFail; acc.interviewPass += r.interviewPass;
+    acc.other += r.other;
+    acc.finalSelect += r.finalSelect;
+    return acc;
+  }, { total:0, ongoing:0, absent:0, writtenFail:0, resultPending:0, writtenPass:0, examGiven:0, pendingInterview:0, interviewFail:0, interviewPass:0, other:0, finalSelect:0 });
+  // Exam-sitters (examGiven) ko hi base maana jaata hai, total-registered ko nahi —
+  // jo students written exam me baithe hi nahi (ongoing/absent), unhe rate me nahi gina jaata.
+  totals.writtenPassRateOfExam = totals.examGiven ? Math.round((totals.writtenPass / totals.examGiven) * 100) : 0;
+  totals.selectionRateOfExam = totals.examGiven ? Math.round((totals.finalSelect / totals.examGiven) * 100) : 0;
+  return totals;
+}
+
+function auditRateCell(examGiven, pct){
+  if (!examGiven) return `<span class="audit-rate" style="background:var(--paper); color:var(--slate);">—</span>`;
+  return `<span class="audit-rate ${rateTone(pct)}">${pct}%</span>`;
+}
+
+function buildAuditTableHtml(rows, totals){
+  const bodyRows = rows.map(r => {
+    if (r.total === 0){
+      return `<tr>
+        <td class="audit-batch">${escapeHtml(r.batch)}</td>
+        <td colspan="12" style="color:var(--slate); font-style:italic;">कोई रिकॉर्ड नहीं मिला / No record found</td>
+        <td><span class="audit-rate" style="background:var(--paper); color:var(--slate);">—</span></td>
+        <td><span class="audit-rate" style="background:var(--paper); color:var(--slate);">—</span></td>
+      </tr>`;
+    }
+    return `<tr>
+      <td class="audit-batch">${escapeHtml(r.batch)}</td>
+      <td>${r.total}</td>
+      <td>${r.ongoing}</td>
+      <td>${r.absent}</td>
+      <td><b>${r.examGiven}</b></td>
+      <td>${r.writtenFail}</td>
+      <td>${r.writtenPass}</td>
+      <td>${r.resultPending}</td>
+      <td>${r.pendingInterview}</td>
+      <td>${r.interviewFail}</td>
+      <td>${r.interviewPass}</td>
+      <td>${r.other ? `<span title="कोई अज्ञात/custom status / unrecognised custom status">${r.other} ⚠</span>` : 0}</td>
+      <td><b>${r.finalSelect}</b></td>
+      <td>${auditRateCell(r.examGiven, r.writtenPassRateOfExam)}</td>
+      <td>${auditRateCell(r.examGiven, r.selectionRateOfExam)}</td>
+    </tr>`;
+  }).join('');
+
+  return `
+    <div class="audit-table-wrap">
+      <table class="audit-table">
+        <thead><tr>
+          <th><span class="th-en">Batch</span><span class="th-hi">बैच</span></th>
+          <th><span class="th-en">Total</span><span class="th-hi">कुल</span></th>
+          <th><span class="th-en">Ongoing</span><span class="th-hi">जारी</span></th>
+          <th><span class="th-en">Absent</span><span class="th-hi">अनुपस्थित</span></th>
+          <th><span class="th-en">Appeared (Written)</span><span class="th-hi">उपस्थित (लिखित)</span></th>
+          <th><span class="th-en">Written fail</span><span class="th-hi">लिखित फेल</span></th>
+          <th><span class="th-en">Written pass</span><span class="th-hi">लिखित पास</span></th>
+          <th><span class="th-en">Result pending</span><span class="th-hi">रिजल्ट पेंडिंग</span></th>
+          <th><span class="th-en">Interview pending</span><span class="th-hi">इंटरव्यू पेंडिंग</span></th>
+          <th><span class="th-en">Interview fail</span><span class="th-hi">इंटरव्यू फेल</span></th>
+          <th><span class="th-en">Interview pass</span><span class="th-hi">इंटरव्यू पास</span></th>
+          <th><span class="th-en">Other (unclassified)</span><span class="th-hi">अन्य / अस्पष्ट</span></th>
+          <th><span class="th-en">Final select</span><span class="th-hi">फाइनल सेलेक्ट</span></th>
+          <th><span class="th-en">Written pass rate</span><span class="th-hi">लिखित पास दर</span></th>
+          <th><span class="th-en">Selection rate</span><span class="th-hi">सेलेक्शन दर</span></th>
+        </tr></thead>
+        <tbody>${bodyRows}</tbody>
+        <tfoot><tr>
+          <td><b>कुल / Overall</b></td>
+          <td>${totals.total}</td>
+          <td>${totals.ongoing}</td>
+          <td>${totals.absent}</td>
+          <td><b>${totals.examGiven}</b></td>
+          <td>${totals.writtenFail}</td>
+          <td>${totals.writtenPass}</td>
+          <td>${totals.resultPending}</td>
+          <td>${totals.pendingInterview}</td>
+          <td>${totals.interviewFail}</td>
+          <td>${totals.interviewPass}</td>
+          <td>${totals.other || 0}</td>
+          <td>${totals.finalSelect}</td>
+          <td>${auditRateCell(totals.examGiven, totals.writtenPassRateOfExam)}</td>
+          <td>${auditRateCell(totals.examGiven, totals.selectionRateOfExam)}</td>
+        </tr></tfoot>
+      </table>
+    </div>
+    ${totals.other ? `<div class="funnel-note" style="margin-top:8px; color:var(--rust);">⚠ ${totals.other} छात्रों का status किसी जानी-पहचानी श्रेणी में फिट नहीं हो रहा (शायद "Others" में custom text डाला गया है) — इन्हें audit से सही count नहीं मिल पाता, status edit कर के ठीक करें। / ${totals.other} student(s) have a status that doesn't match any known category (likely a custom "Others" entry) — these aren't counted correctly in the audit; please fix their status.</div>` : ''}`;
+}
+
+function renderAuditControls(){
+  const ctrlHost = document.getElementById('auditControlsHost');
+  if (!ctrlHost) return;
+  if (!isAdmin){
+    ctrlHost.innerHTML = '';
+    return;
+  }
+  ctrlHost.innerHTML = `
+    <div class="audit-controls">
+      <div class="audit-controls-label">रिपोर्ट में क्या दिखे (सिर्फ़ एडमिन) / What shows in the report (admin only)</div>
+      <div class="audit-check-row" id="auditScopeChecks">
+        ${AUDIT_SCOPES.map(scope => `
+          <label><input type="checkbox" data-scope="${scope.key}" ${auditScopeVisible[scope.key] ? 'checked' : ''}> ${escapeHtml(scope.label)}</label>
+        `).join('')}
+      </div>
+      <div class="audit-check-row">
+        <label><input type="checkbox" id="auditGraphInPdfCheck" ${auditIncludeGraphInPdf ? 'checked' : ''}> PDF में ट्रेंड ग्राफ़ भी शामिल करें, नहीं तो सिर्फ़ रिपोर्ट टेबल / Include trend graph in PDF, otherwise only the report table</label>
+      </div>
+    </div>`;
+
+  ctrlHost.querySelectorAll('#auditScopeChecks input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const checkedCount = Array.from(ctrlHost.querySelectorAll('#auditScopeChecks input[type="checkbox"]')).filter(c => c.checked).length;
+      if (checkedCount === 0){
+        cb.checked = true; // kam se kam ek scope zaroor dikhna chahiye
+        showToast('कम से कम एक विकल्प चुना होना चाहिए / At least one option must stay selected');
+        return;
+      }
+      auditScopeVisible[cb.getAttribute('data-scope')] = cb.checked;
+      renderAuditReport();
+    });
+  });
+  const graphCheck = document.getElementById('auditGraphInPdfCheck');
+  if (graphCheck){
+    graphCheck.addEventListener('change', () => { auditIncludeGraphInPdf = graphCheck.checked; });
+  }
+}
+
+function renderAuditReport(){
+  const host = document.getElementById('auditReportHost');
+  if (!host) return;
+  const noteEl = document.getElementById('auditScopeNote');
+  if (noteEl){
+    noteEl.textContent = 'हर बैच में कितने ऑनगोइंग, अनुपस्थित, लिखित/इंटरव्यू में फेल-पास हुए और फाइनल सेलेक्ट हुए — IT, Management अलग-अलग और दोनों मिलाकर एक साथ। दर (%) सिर्फ उन्हीं पर आधारित है जो असल में लिखित परीक्षा में बैठे। / Full per-batch breakdown — IT and Management shown separately and combined. Rates (%) are based only on students who actually sat the written exam.';
+  }
+
+  renderAuditControls();
+
+  const anyData = students.length > 0;
+  if (!anyData){
+    host.innerHTML = '<div class="empty-state" style="padding:30px 10px;">कोई रिकॉर्ड नहीं मिला / No record found</div>';
+    return;
+  }
+
+  const visibleScopes = AUDIT_SCOPES.filter(scope => auditScopeVisible[scope.key]);
+  const scopesToShow = visibleScopes.length ? visibleScopes : AUDIT_SCOPES;
+
+  const sectionsHtml = scopesToShow.map(scope => {
+    const rows = auditRowsForTrack(scope.key);
+    const totals = computeAuditTotals(rows);
+    return `<div class="audit-scope-block" style="margin-bottom:22px;">
+      <h4 style="margin:0 0 8px;">${escapeHtml(scope.label)}</h4>
+      ${buildAuditTableHtml(rows, totals)}
+    </div>`;
+  }).join('');
+
+  host.innerHTML = sectionsHtml + `
+    <button class="btn btn-ghost btn-small" id="auditPdfBtn" style="margin-top:4px;">⬇ ऑडिट रिपोर्ट PDF (हस्ताक्षर सहित) / Download Audit PDF (signed)</button>`;
+
+  const pdfBtn = document.getElementById('auditPdfBtn');
+  if (pdfBtn) pdfBtn.addEventListener('click', openDownloadOptionsModal);
+}
+
+function openDownloadOptionsModal(){
+  document.getElementById('dlOpt_all').checked = !!auditScopeVisible.all;
+  document.getElementById('dlOpt_IT').checked = !!auditScopeVisible.IT;
+  document.getElementById('dlOpt_Management').checked = !!auditScopeVisible.Management;
+  document.getElementById('dlOpt_graph').checked = !!auditIncludeGraphInPdf;
+  document.getElementById('downloadOptionsOverlay').classList.add('show');
+}
+function closeDownloadOptionsModal(){
+  document.getElementById('downloadOptionsOverlay').classList.remove('show');
+}
+function confirmDownloadOptions(){
+  const all = document.getElementById('dlOpt_all').checked;
+  const it = document.getElementById('dlOpt_IT').checked;
+  const mgmt = document.getElementById('dlOpt_Management').checked;
+  const graph = document.getElementById('dlOpt_graph').checked;
+  if (!all && !it && !mgmt){
+    showToast('कम से कम एक विकल्प चुनें / Select at least one option');
+    return;
+  }
+  auditScopeVisible = { all, IT: it, Management: mgmt };
+  auditIncludeGraphInPdf = graph;
+  closeDownloadOptionsModal();
+  renderAuditReport(); // on-screen report bhi isi selection ke hisaab se refresh ho jaaye
+  exportAuditPDF();
+}
+
+function svgToPngDataUrl(svgEl, scale){
+  return new Promise((resolve, reject) => {
+    try{
+      const clone = svgEl.cloneNode(true);
+      const vb = (clone.getAttribute('viewBox') || '0 0 760 270').split(/\s+/).map(Number);
+      const w = vb[2] || 760, h = vb[3] || 270;
+      clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      clone.setAttribute('width', w);
+      clone.setAttribute('height', h);
+      const svgStr = new XMLSerializer().serializeToString(clone);
+      const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = w * scale; canvas.height = h * scale;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+        resolve({ dataUrl: canvas.toDataURL('image/png'), w, h });
+      };
+      img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+      img.src = url;
+    } catch(e){ reject(e); }
+  });
+}
+
+async function exportAuditPDF(){
+  if (!window.jspdf || !window.jspdf.jsPDF){
+    showToast('PDF लाइब्रेरी लोड नहीं हुई, दोबारा कोशिश करें / PDF library did not load, please retry');
+    return;
+  }
+  if (students.length === 0){
+    showToast('कोई रिकॉर्ड नहीं मिला / No record found');
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+  const marginX = 28;
+  const now = new Date();
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.text('TCS Placement Tracker - Audit Report', marginX, 36);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9.5);
+  doc.setTextColor(90, 100, 110);
+  doc.text(`Generated: ${now.toLocaleString('en-IN')}  |  Rates based on exam-sitters only`, marginX, 52);
+  doc.setTextColor(28, 43, 58);
+
+  const head = [[
+    'Batch', 'Total', 'Ongoing', 'Absent', 'Total Appeared (Written Exam)', 'Written fail', 'Written pass', 'Result pending',
+    'Interview pending', 'Interview fail', 'Interview pass', 'Other (unclassified)', 'Final select', 'Written pass rate', 'Selection rate'
+  ]];
+
+  const scopeTitles = { all: 'All tracks (combined)', IT: 'IT (Ignite/Smart)', Management: 'Management (BPS)' };
+  let cursorY = 64;
+
+  const visibleScopes = AUDIT_SCOPES.filter(scope => auditScopeVisible[scope.key]);
+  const scopesToExport = visibleScopes.length ? visibleScopes : AUDIT_SCOPES;
+  let anyOther = false;
+
+  scopesToExport.forEach((scope, idx) => {
+    const rows = auditRowsForTrack(scope.key);
+    const totals = computeAuditTotals(rows);
+    if (totals.other) anyOther = true;
+    const body = rows.map(r => [
+      r.batch,
+      r.total, r.ongoing, r.absent, r.examGiven, r.writtenFail, r.writtenPass, r.resultPending,
+      r.pendingInterview, r.interviewFail, r.interviewPass, r.other,
+      r.finalSelect,
+      r.examGiven ? r.writtenPassRateOfExam + '%' : '-',
+      r.examGiven ? r.selectionRateOfExam + '%' : '-',
+    ]);
+    body.push([
+      'Overall', totals.total, totals.ongoing, totals.absent, totals.examGiven, totals.writtenFail, totals.writtenPass, totals.resultPending,
+      totals.pendingInterview, totals.interviewFail, totals.interviewPass, totals.other,
+      totals.finalSelect,
+      totals.examGiven ? totals.writtenPassRateOfExam + '%' : '-',
+      totals.examGiven ? totals.selectionRateOfExam + '%' : '-',
+    ]);
+
+    const pageH = doc.internal.pageSize.getHeight();
+    if (cursorY > pageH - 120){
+      doc.addPage();
+      cursorY = 40;
+    }
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11.5);
+    doc.setTextColor(28, 43, 58);
+    doc.text(scopeTitles[scope.key] || scope.key, marginX, cursorY);
+    cursorY += 8;
+
+    doc.autoTable({
+      head, body,
+      startY: cursorY,
+      margin: { left: marginX, right: marginX },
+      styles: { fontSize: 8, cellPadding: 3.5 },
+      headStyles: { fillColor: [34, 64, 95], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [238, 241, 244] },
+      didParseCell: (data) => {
+        if (data.row.index === body.length - 1 && data.section === 'body'){
+          data.cell.styles.fillColor = [223, 231, 240];
+          data.cell.styles.fontStyle = 'bold';
+        }
+      },
+    });
+    cursorY = doc.lastAutoTable.finalY + 26;
+  });
+
+  if (anyOther){
+    const pageH0 = doc.internal.pageSize.getHeight();
+    if (cursorY > pageH0 - 90){ doc.addPage(); cursorY = 40; }
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(8.5);
+    doc.setTextColor(170, 70, 50);
+    doc.text('Note: "Other (unclassified)" students have a status not matching any known category (likely a custom "Others" entry) — fix their status for an accurate count.', marginX, cursorY, { maxWidth: doc.internal.pageSize.getWidth() - marginX * 2 });
+    doc.setTextColor(28, 43, 58);
+    cursorY += 20;
+  }
+
+  // Admin ne chaha to trend graph bhi PDF me add karein, warna sirf report table rahega.
+  if (auditIncludeGraphInPdf){
+    const svgEl = document.querySelector('#trendChartHost svg');
+    if (svgEl){
+      try{
+        const { dataUrl, w, h } = await svgToPngDataUrl(svgEl, 2.5);
+        const pageW = doc.internal.pageSize.getWidth();
+        const pageH = doc.internal.pageSize.getHeight();
+        const imgW = pageW - marginX * 2;
+        const imgH = imgW * (h / w);
+        if (cursorY + 24 + imgH > pageH - 70){
+          doc.addPage();
+          cursorY = 40;
+        }
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11.5);
+        doc.setTextColor(28, 43, 58);
+        doc.text('Trend graph — batch-wise', marginX, cursorY);
+        cursorY += 10;
+        doc.addImage(dataUrl, 'PNG', marginX, cursorY, imgW, imgH);
+        cursorY += imgH + 26;
+      } catch(e){
+        console.error('Trend graph PDF embed failed', e);
+      }
+    } else {
+      showToast('ग्राफ़ उपलब्ध नहीं (कम से कम 2 बैच में एग्ज़ाम ज़रूरी) / Graph not available (needs at least 2 batches with exam given)');
+    }
+  }
+
+  // Digital signature / certification block
+  let sigY = cursorY + 14;
+  const pageH = doc.internal.pageSize.getHeight();
+  if (sigY > pageH - 70){
+    doc.addPage();
+    sigY = 50;
+  }
+  doc.setDrawColor(200, 205, 212);
+  doc.line(marginX, sigY, marginX + 220, sigY);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10.5);
+  doc.setTextColor(28, 43, 58);
+  doc.text('Ashutosh Dubey', marginX, sigY + 16);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(90, 100, 110);
+  doc.text('TCS Placement Coordinator', marginX, sigY + 30);
+  doc.text('Microtek College of Management & Technology, Varanasi', marginX, sigY + 43);
+  doc.setFontSize(8.3);
+  doc.text(`Digitally certified on ${now.toLocaleString('en-IN')}`, marginX, sigY + 58);
+  doc.setTextColor(28, 43, 58);
+
+  doc.save(`tcs-audit-report-all-scopes-${now.toISOString().slice(0,10)}.pdf`);
+  showToast('ऑडिट रिपोर्ट PDF डाउनलोड हो गई / Audit report PDF downloaded');
+}
+
+let trendSeriesState = { written: true, selected: true };
+
+const TREND_SERIES_DEFS = {
+  written: { key: 'writtenPassRateOfExam', color: '#c07d2b', labelHi: 'लिखित परीक्षा पास %', labelEn: 'Written exam pass %' },
+  selected: { key: 'selectionRateOfExam', color: '#3f7d58', labelHi: 'फाइनल सेलेक्ट %', labelEn: 'Final select %' },
+};
+
+function renderSelectionTrendChart(){
+  const host = document.getElementById('trendChartHost');
+  if (!host) return;
+  const noteEl = document.getElementById('trendScopeNote');
+  if (noteEl){
+    const trackPart = activeTrack === 'all' ? 'सभी ट्रैक / All tracks' : activeTrack;
+    noteEl.textContent = `जिन बैच में लिखित परीक्षा हो चुकी है सिर्फ़ उन्हीं का डेटा — कितने एग्ज़ाम में बैठे, कितने पास हुए, कितने फाइनल सेलेक्ट हुए (${trackPart})। बैच जिसमें अभी परीक्षा नहीं हुई, वो नहीं दिखेगा। / Only batches where the written exam has happened — based on exam appeared vs passed vs selected, ${trackPart}. A batch with no exam yet is left out.`;
+  }
+
+  const activeSeries = Object.keys(TREND_SERIES_DEFS).filter(k => trendSeriesState[k]);
+  if (activeSeries.length === 0){
+    host.innerHTML = '<div class="empty-state" style="padding:30px 10px;">कम से कम एक मेट्रिक चुनें / Select at least one metric above</div>';
+    return;
+  }
+
+  // Sirf wahi batches jinme written exam ho chuka hai (examGiven > 0) — jab tak exam na ho, batch graph me nahi dikhega.
+  const rows = auditRowsForTrack().filter(r => r.examGiven > 0);
+  if (rows.length < 2){
+    host.innerHTML = '<div class="empty-state" style="padding:30px 10px;">ट्रेंड दिखाने के लिए कम से कम 2 बैच में लिखित परीक्षा हो चुकी होनी चाहिए / Need the written exam done in at least 2 batches to show a trend</div>';
+    return;
+  }
+
+  const w = 760, h = 270, padL = 42, padR = 24, padT = 24, padB = 44;
+  const innerW = w - padL - padR;
+  const innerH = h - padT - padB;
+  const n = rows.length;
+  const stepX = n > 1 ? innerW / (n - 1) : 0;
+  const maxY = 100;
+  const showLabels = activeSeries.length === 1;
+
+  const gridLines = [0, 25, 50, 75, 100].map(v => {
+    const y = padT + innerH - (v / maxY) * innerH;
+    return `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${w - padR}" y2="${y.toFixed(1)}" stroke="#e3e7ec" stroke-width="1"/>
+      <text x="${padL - 8}" y="${(y + 4).toFixed(1)}" font-size="10" fill="#8a97a5" text-anchor="end">${v}%</text>`;
+  }).join('');
+
+  const xLabels = rows.map((r, i) => {
+    const x = padL + stepX * i;
+    return `<text x="${x.toFixed(1)}" y="${h - 10}" font-size="10" fill="#5c6b7a" text-anchor="middle">${escapeHtml(r.batch)}</text>`;
+  }).join('');
+
+  let seriesSvg = '';
+  activeSeries.forEach((seriesKey, sIdx) => {
+    const def = TREND_SERIES_DEFS[seriesKey];
+    const points = rows.map((r, i) => {
+      const x = padL + stepX * i;
+      const y = padT + innerH - (r[def.key] / maxY) * innerH;
+      return { x, y, value: r[def.key] };
+    });
+    const linePath = points.map((p, i) => (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ' ' + p.y.toFixed(1)).join(' ');
+    let areaFill = '';
+    if (activeSeries.length === 1){
+      const baseline = (padT + innerH).toFixed(1);
+      const areaPath = `${linePath} L ${points[points.length - 1].x.toFixed(1)} ${baseline} L ${points[0].x.toFixed(1)} ${baseline} Z`;
+      areaFill = `<path d="${areaPath}" fill="url(#trendFillGrad${sIdx})"/>
+        <defs><linearGradient id="trendFillGrad${sIdx}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${def.color}" stop-opacity="0.28"/>
+          <stop offset="100%" stop-color="${def.color}" stop-opacity="0.02"/>
+        </linearGradient></defs>`;
+    }
+    const dots = points.map(p => `
+      <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4.3" fill="#ffffff" stroke="${def.color}" stroke-width="2.3"/>
+      ${showLabels ? `<text x="${p.x.toFixed(1)}" y="${(p.y - 10).toFixed(1)}" font-size="11" font-weight="600" fill="${def.color}" text-anchor="middle">${p.value}%</text>` : ''}
+    `).join('');
+    seriesSvg += `${areaFill}<path d="${linePath}" fill="none" stroke="${def.color}" stroke-width="2.6"/>${dots}`;
+  });
+
+  host.innerHTML = `
+    <svg viewBox="0 0 ${w} ${h}" style="width:100%; height:auto; display:block;">
+      ${gridLines}
+      ${seriesSvg}
+      ${xLabels}
+    </svg>`;
+
+  const summaries = activeSeries.map(seriesKey => {
+    const def = TREND_SERIES_DEFS[seriesKey];
+    const first = rows[0][def.key];
+    const last = rows[rows.length - 1][def.key];
+    const diff = last - first;
+    let trendHtml;
+    if (diff > 0){
+      trendHtml = `<span class="trend-up">▲ ${diff}% बढ़ी / increased</span>`;
+    } else if (diff < 0){
+      trendHtml = `<span class="trend-down">▼ ${Math.abs(diff)}% घटी / decreased</span>`;
+    } else {
+      trendHtml = `<span class="trend-flat">कोई बदलाव नहीं / unchanged</span>`;
+    }
+    return `<div><i style="background:${def.color}; display:inline-block; width:9px; height:9px; border-radius:3px; margin-right:6px;"></i>${escapeHtml(def.labelHi)} / ${escapeHtml(def.labelEn)}: ${trendHtml}</div>`;
+  }).join('');
+
+  host.innerHTML += `<div class="trend-summary">${escapeHtml(rows[0].batch)} से ${escapeHtml(rows[rows.length - 1].batch)} तक बदलाव / Change from ${escapeHtml(rows[0].batch)} to ${escapeHtml(rows[rows.length - 1].batch)}:<div style="margin-top:6px; display:flex; flex-direction:column; gap:4px;">${summaries}</div></div>`;
 }
 
 function renderBatchNoteBanner(){
@@ -1560,10 +2733,15 @@ function render(){
   renderStats();
   renderCharts();
   renderFunnel();
+  renderPlacementSummary();
+  renderSelectionTrendChart();
+  renderAuditReport();
   renderTrackRow();
   renderBatchRow();
   renderBatchNoteBanner();
   renderBatchManagePanel();
+  renderPendingSubmissionsPanel();
+  renderStatusFilterRow();
   renderTable();
 }
 
@@ -1699,6 +2877,17 @@ document.getElementById('confirmDelete').addEventListener('click', doDelete);
 document.getElementById('confirmOverlay').addEventListener('click', (e) => { if (e.target.id === 'confirmOverlay') closeConfirm(); });
 document.getElementById('searchInput').addEventListener('input', (e) => { searchTerm = e.target.value; renderTable(); });
 document.getElementById('f_status').addEventListener('change', syncStatusOtherVisibility);
+document.getElementById('trendToggleRow').addEventListener('click', (e) => {
+  const btn = e.target.closest('.trend-toggle-btn');
+  if (!btn) return;
+  const key = btn.getAttribute('data-series');
+  if (!(key in trendSeriesState)) return;
+  const activeCount = Object.values(trendSeriesState).filter(Boolean).length;
+  if (trendSeriesState[key] && activeCount === 1) return; // at least one series must stay on
+  trendSeriesState[key] = !trendSeriesState[key];
+  btn.classList.toggle('active', trendSeriesState[key]);
+  renderSelectionTrendChart();
+});
 
 function updateAuthUI(){
   document.body.classList.toggle('is-admin', isAdmin);
@@ -1789,11 +2978,73 @@ document.getElementById('loginPassword').addEventListener('keydown', (e) => { if
 document.getElementById('changePasswordLink').addEventListener('click', openPwd);
 document.getElementById('pwdCancel').addEventListener('click', closePwd);
 document.getElementById('pwdSubmit').addEventListener('click', submitPwdChange);
+document.getElementById('downloadOptionsCancel').addEventListener('click', closeDownloadOptionsModal);
+document.getElementById('downloadOptionsConfirm').addEventListener('click', confirmDownloadOptions);
 document.getElementById('pwdOverlay').addEventListener('click', (e) => { if (e.target.id === 'pwdOverlay') closePwd(); });
 
-updateAuthUI();
-loadStudents();
-loadMeta();
+// Public self-registration link (?register=1) — isme sirf ek chhota sa form dikhta hai,
+// poora admin tracker ya kisi aur student ka data is page par load hi nahi hota.
+const urlParams = new URLSearchParams(window.location.search);
+const isPublicRegisterMode = urlParams.get('register') === '1';
+
+if (isPublicRegisterMode){
+  document.getElementById('publicRegisterPage').style.display = 'block';
+  const topbarEl = document.getElementById('appTopbar');
+  const wrapEl = document.getElementById('appWrap');
+  if (topbarEl) topbarEl.style.display = 'none';
+  if (wrapEl) wrapEl.style.display = 'none';
+
+  const prSubmitBtn = document.getElementById('pr_submitBtn');
+  const prFormWrap = document.getElementById('publicRegisterFormWrap');
+  const prSuccess = document.getElementById('publicRegisterSuccess');
+
+  prSubmitBtn.addEventListener('click', async () => {
+    const name = document.getElementById('pr_name').value.trim();
+    if (!name){
+      showToast('कृपया नाम लिखें / Please enter your name');
+      return;
+    }
+    prSubmitBtn.disabled = true;
+    prSubmitBtn.textContent = 'जमा हो रहा है... / Submitting...';
+    const payload = {
+      name,
+      refId: document.getElementById('pr_refId').value.trim(),
+      track: document.getElementById('pr_track').value,
+      university: document.getElementById('pr_university').value.trim(),
+      batch: document.getElementById('pr_batch').value.trim(),
+      course: document.getElementById('pr_course').value.trim(),
+      roll: document.getElementById('pr_roll').value.trim(),
+      mobile: document.getElementById('pr_mobile').value.trim(),
+      email: document.getElementById('pr_email').value.trim(),
+      submittedAt: Date.now()
+    };
+    try{
+      await addDoc(pendingCollRef, payload);
+      prFormWrap.style.display = 'none';
+      prSuccess.style.display = 'block';
+    } catch(e){
+      console.error('Public register submit failed', e);
+      showToast('कुछ गलत हो गया, दोबारा कोशिश करें / Something went wrong, please retry');
+    } finally {
+      prSubmitBtn.disabled = false;
+      prSubmitBtn.textContent = 'सबमिट करें / Submit';
+    }
+  });
+
+  document.getElementById('pr_submitAnotherBtn').addEventListener('click', () => {
+    ['pr_name','pr_refId','pr_university','pr_batch','pr_course','pr_roll','pr_mobile','pr_email'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('pr_track').value = 'IT';
+    prSuccess.style.display = 'none';
+    prFormWrap.style.display = 'block';
+  });
+} else {
+  updateAuthUI();
+  loadStudents();
+  loadMeta();
+  loadPendingSubmissions();
+}
 </script>
 </body>
 </html>
